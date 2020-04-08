@@ -97,8 +97,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                     title: Text(filteredList[index].title,
                         style: TextStyle(fontSize: 15.0)),
                     subtitle:
-                        buildSubtitleRichText(snapshot, index, readSuffix),
-                    trailing: buildBookmarkIconButton(snapshot, index, context),
+                        buildSubtitleRichText(filteredList, index, readSuffix),
+                    trailing: buildBookmarkIconButton(filteredList, index, context),
                     onTap: () {
                       _launchURL(filteredList[index].url);
                       setState(() {
@@ -188,13 +188,11 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  RichText buildSubtitleRichText(
-      AsyncSnapshot<List<Article>> snapshot, int index, String readSuffix) {
+  RichText buildSubtitleRichText(List<Article> data, int index, String readSuffix) {
     return RichText(
         text: TextSpan(
-      text: snapshot.data[index].date.toString().substring(0, 10) +
-          ' | ' +
-          snapshot.data[index].source,
+      text: data[index].date.toString().substring(0, 10) +
+          ' | ' + data[index].source,
       style: TextStyle(color: Colors.white70, fontSize: 12.0),
       children: <TextSpan>[
         TextSpan(
@@ -203,31 +201,29 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     ));
   }
 
-  IconButton buildBookmarkIconButton(
-      AsyncSnapshot<List<Article>> snapshot, int index, BuildContext context) {
+  IconButton buildBookmarkIconButton(List<Article> data, int index, BuildContext context) {
     return new IconButton(
         icon: Icon(
-            snapshot.data[index].saved ? Icons.bookmark : Icons.bookmark_border,
-            color: snapshot.data[index].saved ? Colors.white : null),
+            data[index].saved ? Icons.bookmark : Icons.bookmark_border,
+            color: data[index].saved ? Colors.white : null),
         onPressed: () {
-          bookmark(context, snapshot, index);
+          bookmark(context, data, index);
         });
   }
 
-  void bookmark(
-      BuildContext context, AsyncSnapshot<List<Article>> snapshot, int index) {
+  void bookmark(BuildContext context, List<Article> data, int index) {
     setState(() {
       final scaffold = Scaffold.of(context);
-      snapshot.data[index].saved = !snapshot.data[index].saved;
-      if (snapshot.data[index].saved) {
+      data[index].saved = !data[index].saved;
+      if (data[index].saved) {
         scaffold.showSnackBar(SnackBar(
-          content: Text('${snapshot.data[index].title} article saved!'),
+          content: Text('${data[index].title} article saved!'),
           action: SnackBarAction(
               label: 'UNDO',
               onPressed: () {
                 scaffold.hideCurrentSnackBar();
                 setState(() {
-                  snapshot.data[index].saved = !snapshot.data[index].saved;
+                  data[index].saved = !data[index].saved;
                 });
               }),
           duration: Duration(milliseconds: 2000),

@@ -9,6 +9,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:oktoast/oktoast.dart';
 
 import 'app_config.dart';
 import 'article.dart';
@@ -31,16 +32,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tech news',
-      home: TechArticlesWidget(config:config),
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.blue,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-      ),
+    return OKToast(
+      child: MaterialApp(
+        title: 'Tech news',
+        home: TechArticlesWidget(config:config),
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          primaryColor: Colors.blue,
+        ),
+        darkTheme: ThemeData(
+          brightness: Brightness.dark,
+        ),
+      )
     );
   }
 }
@@ -61,6 +64,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
   Future<List<Article>> articles;
+  GlobalKey<RefreshIndicatorState> globalKey;
 
   TechArticlesWidgetState({this.config});
 
@@ -68,6 +72,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    globalKey = GlobalKey<RefreshIndicatorState>();
     log.fine('initState');
     articles = fetchArticles();
   }
@@ -124,7 +129,23 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       appBar: AppBar(
         title: Text('Tech news'),
       ),
-      body: data,
+      body: RefreshIndicator(
+        color: Colors.black,
+        backgroundColor: Colors.grey,
+        key: globalKey,
+        onRefresh: () async {
+          articles = fetchArticles();
+          showToast(
+            'Fetching articles',
+            duration: Duration(seconds: 2),
+            position: ToastPosition.bottom,
+            backgroundColor: Colors.white,
+            radius: 5.0,
+            textStyle: TextStyle(fontSize: 16.0, color: Colors.black),
+          );
+        },
+        child: data,
+      ),
       floatingActionButton: buildSpeedDial(),
     );
   }

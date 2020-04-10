@@ -134,7 +134,9 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         backgroundColor: Colors.grey,
         key: globalKey,
         onRefresh: () async {
-          articles = fetchArticles();
+          setState(() {
+            articles = fetchArticles();
+          });
           showToast(
             'Fetching articles',
             duration: Duration(seconds: 2),

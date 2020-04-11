@@ -93,13 +93,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               padding: const EdgeInsets.all(13.0),
               itemCount: filteredList.length,
               itemBuilder: (context, index) {
-                var readSuffix = filteredList[index].read ? ' · read' : '';
+                var textColor =
+                    filteredList[index].read ? Colors.white54 : Colors.white;
                 return Card(
                   child: ListTile(
                     title: Text(filteredList[index].title,
-                        style: TextStyle(fontSize: 15.0)),
-                    subtitle:
-                        buildSubtitleRichText(filteredList, index, readSuffix),
+                        style: TextStyle(color: textColor, fontSize: 15.0)),
+                    subtitle: buildSubtitleRichText(filteredList[index]),
                     trailing:
                         buildBookmarkIconButton(filteredList, index, context),
                     onTap: () {
@@ -216,14 +216,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  RichText buildSubtitleRichText(
-      List<Article> data, int index, String readSuffix) {
+  RichText buildSubtitleRichText(Article article) {
+    final readSuffix = article.read ? ' · read' : '';
+    final color = article.read ? Colors.white54 : Colors.white70;
     return RichText(
         text: TextSpan(
-      text: data[index].date.toString().substring(0, 10) +
-          ' | ' +
-          data[index].source,
-      style: TextStyle(color: Colors.white70, fontSize: 12.0),
+      text: article.date.toString().substring(0, 10) + ' | ' + article.source,
+      style: TextStyle(color: color, fontSize: 12.0),
       children: <TextSpan>[
         TextSpan(
             text: readSuffix, style: TextStyle(fontWeight: FontWeight.bold)),

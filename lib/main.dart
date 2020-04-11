@@ -76,52 +76,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   @override
   Widget build(BuildContext context) {
-    var data = new FutureBuilder<List<Article>>(
-      future: articles,
-      builder: (BuildContext context, AsyncSnapshot<List<Article>> snapshot) {
-        if (snapshot.hasData) {
-          List<Article> filteredList = snapshot.data;
-          if (_showOnlySavedArticles) {
-            filteredList =
-                filteredList.where((element) => element.saved).toList();
-          } else if (_hideReadArticles) {
-            filteredList =
-                filteredList.where((element) => !element.read).toList();
-          }
-
-          return ListView.separated(
-              padding: const EdgeInsets.all(13.0),
-              itemCount: filteredList.length,
-              itemBuilder: (context, index) {
-                var textColor =
-                    filteredList[index].read ? Colors.white54 : Colors.white;
-                return Card(
-                  child: ListTile(
-                    title: Text(filteredList[index].title,
-                        style: TextStyle(color: textColor, fontSize: 15.0)),
-                    subtitle: buildSubtitleRichText(filteredList[index]),
-                    trailing:
-                        buildBookmarkIconButton(filteredList, index, context),
-                    onTap: () {
-                      _launchURL(filteredList[index].url);
-                      setState(() {
-                        filteredList[index].read = true;
-                      });
-                    },
-                  ),
-                );
-              },
-              separatorBuilder: (BuildContext context, int index) => Divider());
-        } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
-        }
-
-        // By default, show a loading spinner.
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
+    var data = buildDataFutureBuilder();
 
     return Scaffold(
       appBar: AppBar(
@@ -154,6 +109,55 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         child: data,
       ),
       floatingActionButton: buildSpeedDial(),
+    );
+  }
+
+  FutureBuilder<List<Article>> buildDataFutureBuilder() {
+    return new FutureBuilder<List<Article>>(
+      future: articles,
+      builder: (BuildContext context, AsyncSnapshot<List<Article>> snapshot) {
+        if (snapshot.hasData) {
+          List<Article> filteredList = snapshot.data;
+          if (_showOnlySavedArticles) {
+            filteredList =
+                filteredList.where((element) => element.saved).toList();
+          } else if (_hideReadArticles) {
+            filteredList =
+                filteredList.where((element) => !element.read).toList();
+          }
+
+          return ListView.separated(
+              padding: const EdgeInsets.all(13.0),
+              itemCount: filteredList.length,
+              itemBuilder: (context, index) {
+                var textColor =
+                    filteredList[index].read ? Colors.white54 : Colors.white;
+                return Card(
+                  child: ListTile(
+                      title: Text(filteredList[index].title,
+                          style: TextStyle(color: textColor, fontSize: 15.0)),
+                      subtitle: buildSubtitleRichText(filteredList[index]),
+                      trailing:
+                      buildBookmarkIconButton(filteredList[index], context),
+                      onTap: () {
+                        _launchURL(filteredList[index].url);
+                        setState(() {
+                          filteredList[index].read = true;
+                        });
+                      }
+                  ),
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) => Divider());
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+
+        // By default, show a loading spinner.
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
     );
   }
 
@@ -230,29 +234,28 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     ));
   }
 
-  IconButton buildBookmarkIconButton(
-      List<Article> data, int index, BuildContext context) {
+  IconButton buildBookmarkIconButton(Article article, BuildContext context) {
     return new IconButton(
-        icon: Icon(data[index].saved ? Icons.bookmark : Icons.bookmark_border,
-            color: data[index].saved ? Colors.white : null),
+        icon: Icon(article.saved ? Icons.bookmark : Icons.bookmark_border,
+            color: article.saved ? Colors.white : null),
         onPressed: () {
-          bookmark(context, data, index);
+          bookmark(context, article);
         });
   }
 
-  void bookmark(BuildContext context, List<Article> data, int index) {
+  void bookmark(BuildContext context, Article article) {
     setState(() {
       final scaffold = Scaffold.of(context);
-      data[index].saved = !data[index].saved;
-      if (data[index].saved) {
+      article.saved = !article.saved;
+      if (article.saved) {
         scaffold.showSnackBar(SnackBar(
-          content: Text('${data[index].title} article saved!'),
+          content: Text('${article.title} article saved!'),
           action: SnackBarAction(
               label: 'UNDO',
               onPressed: () {
                 scaffold.hideCurrentSnackBar();
                 setState(() {
-                  data[index].saved = !data[index].saved;
+                  article.saved = !article.saved;
                 });
               }),
           duration: Duration(milliseconds: 2000),

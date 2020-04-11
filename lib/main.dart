@@ -131,7 +131,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               itemCount: filteredList.length,
               itemBuilder: (context, index) {
                 var textColor =
-                    filteredList[index].read ? Colors.white54 : Colors.white;
+                    filteredList[index].read ? Colors.white30 : Colors.white;
                 return Card(
                   child: ListTile(
                       title: Text(filteredList[index].title,
@@ -222,7 +222,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   RichText buildSubtitleRichText(Article article) {
     final readSuffix = article.read ? ' · read' : '';
-    final color = article.read ? Colors.white54 : Colors.white70;
+    final color = article.read ? Colors.white30 : Colors.white70;
     return RichText(
         text: TextSpan(
       text: article.date.toString().substring(0, 10) + ' | ' + article.source,
@@ -235,9 +235,16 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   IconButton buildBookmarkIconButton(Article article, BuildContext context) {
+    var color;
+    if (article.read) {
+      color = Colors.white30;
+    } else if (article.saved) {
+      color = Colors.white;
+    }
+
     return new IconButton(
         icon: Icon(article.saved ? Icons.bookmark : Icons.bookmark_border,
-            color: article.saved ? Colors.white : null),
+            color: color),
         onPressed: () {
           bookmark(context, article);
         });

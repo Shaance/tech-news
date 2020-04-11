@@ -25,7 +25,6 @@ void main({String env}) async {
 }
 
 class MyApp extends StatelessWidget {
-
   final AppConfig config;
 
   MyApp({this.config});
@@ -33,30 +32,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OKToast(
-      child: MaterialApp(
-        title: 'Tech news',
-        home: TechArticlesWidget(config:config),
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          primaryColor: Colors.blue,
-        ),
-        darkTheme: ThemeData(
-          brightness: Brightness.dark,
-        ),
-      )
-    );
+        child: MaterialApp(
+      title: 'Tech news',
+      home: TechArticlesWidget(config: config),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: Colors.blue,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+      ),
+    ));
   }
 }
 
 class TechArticlesWidget extends StatefulWidget {
-
   final AppConfig config;
   TechArticlesWidget({this.config});
 
   @override
-  TechArticlesWidgetState createState() => TechArticlesWidgetState(config: config);
+  TechArticlesWidgetState createState() =>
+      TechArticlesWidgetState(config: config);
 }
-
 
 class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final log = Logger('TechArticlesWidget');
@@ -103,7 +100,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                         style: TextStyle(fontSize: 15.0)),
                     subtitle:
                         buildSubtitleRichText(filteredList, index, readSuffix),
-                    trailing: buildBookmarkIconButton(filteredList, index, context),
+                    trailing:
+                        buildBookmarkIconButton(filteredList, index, context),
                     onTap: () {
                       _launchURL(filteredList[index].url);
                       setState(() {
@@ -134,8 +132,15 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         backgroundColor: Colors.grey,
         key: globalKey,
         onRefresh: () async {
+          final oldArticles = await articles;
+          final seen = oldArticles.map((e) => e.url).toSet();
+          final newArticles = await fetchArticles();
+          final refreshedArticles = newArticles
+              .where((article) => !seen.contains(article.url))
+              .toList();
+          refreshedArticles.addAll(oldArticles);
           setState(() {
-            articles = fetchArticles();
+            articles = Future.value(refreshedArticles);
           });
           showToast(
             'Fetching articles',
@@ -211,11 +216,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  RichText buildSubtitleRichText(List<Article> data, int index, String readSuffix) {
+  RichText buildSubtitleRichText(
+      List<Article> data, int index, String readSuffix) {
     return RichText(
         text: TextSpan(
       text: data[index].date.toString().substring(0, 10) +
-          ' | ' + data[index].source,
+          ' | ' +
+          data[index].source,
       style: TextStyle(color: Colors.white70, fontSize: 12.0),
       children: <TextSpan>[
         TextSpan(
@@ -224,10 +231,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     ));
   }
 
-  IconButton buildBookmarkIconButton(List<Article> data, int index, BuildContext context) {
+  IconButton buildBookmarkIconButton(
+      List<Article> data, int index, BuildContext context) {
     return new IconButton(
-        icon: Icon(
-            data[index].saved ? Icons.bookmark : Icons.bookmark_border,
+        icon: Icon(data[index].saved ? Icons.bookmark : Icons.bookmark_border,
             color: data[index].saved ? Colors.white : null),
         onPressed: () {
           bookmark(context, data, index);

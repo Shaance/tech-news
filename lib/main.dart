@@ -279,18 +279,4 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     }
   }
 
-  PopupMenuButton getFilterActionButtonPopup() {
-    return PopupMenuButton<String>(
-      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        CheckedPopupMenuItem<String>(
-          checked: _hideReadArticles,
-          child: const Text('Hide read articles'),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem<String>(
-          child: ListTile(leading: Icon(null), title: Text('yaaah')),
-        ),
-      ],
-    );
-  }
 }

@@ -165,14 +165,14 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     final host = config.apiUrl;
     final sourcesResponse = await http.get('$host/api/v1/info/sources');
     if (sourcesResponse.statusCode == 200) {
-      var sources = json.decode(utf8convert(sourcesResponse.body)) as List;
+      var sources = json.decode(sourcesResponse.body) as List;
       List<Article> articles = new List();
       for (String source in sources) {
         final response = await http.get('$host/api/v1/source/$source');
         if (response.statusCode != 200) {
           throw Exception('Failed to load Articles');
         }
-        var jsonArticles = json.decode(response.body) as List;
+        var jsonArticles = json.decode(utf8convert(response.body)) as List;
         jsonArticles
             .map((jsonArticle) => Article.fromJson(jsonArticle))
             .forEach((article) => articles.add(article));

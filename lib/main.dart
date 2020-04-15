@@ -165,7 +165,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     final host = config.apiUrl;
     final sourcesResponse = await http.get('$host/api/v1/info/sources');
     if (sourcesResponse.statusCode == 200) {
-      var sources = json.decode(sourcesResponse.body) as List;
+      var sources = json.decode(utf8convert(sourcesResponse.body)) as List;
       List<Article> articles = new List();
       for (String source in sources) {
         final response = await http.get('$host/api/v1/source/$source');
@@ -181,6 +181,11 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     } else {
       throw Exception('Failed to load sources.');
     }
+  }
+
+  String utf8convert(String text) {
+    List<int> bytes = text.toString().codeUnits;
+    return utf8.decode(bytes);
   }
 
   SpeedDial buildSpeedDial() {

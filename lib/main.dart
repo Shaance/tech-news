@@ -98,7 +98,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           setState(() {
             articles = Future.value(refreshedArticles);
           });
-          showBottomToast('Fetching articles');
+          showBottomToast('All articles loaded!');
         },
         child: data,
       ),

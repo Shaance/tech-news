@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import 'app_config.dart';
 import 'article.dart';
@@ -97,14 +98,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           setState(() {
             articles = Future.value(refreshedArticles);
           });
-          showToast(
-            'Fetching articles',
-            duration: Duration(seconds: 2),
-            position: ToastPosition.bottom,
-            backgroundColor: Colors.white,
-            radius: 5.0,
-            textStyle: TextStyle(fontSize: 16.0, color: Colors.black),
-          );
+          showBottomToast('Fetching articles');
         },
         child: data,
       ),
@@ -129,26 +123,33 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           return ListView.separated(
               padding: const EdgeInsets.all(13.0),
               itemCount: filteredList.length,
-              itemBuilder: (context, index) {
+              itemBuilder: (BuildContext context, int index) {
                 var textColor =
-                    filteredList[index].read ? Colors.white30 : Colors.white;
-                return Card(
-                  child: ListTile(
-                      title: Text(filteredList[index].title,
-                          style: TextStyle(color: textColor, fontSize: 15.0)),
-                      subtitle: buildSubtitleRichText(filteredList[index]),
-                      trailing:
-                      buildBookmarkIconButton(filteredList[index], context),
-                      onTap: () {
-                        _launchURL(filteredList[index].url);
-                        setState(() {
-                          filteredList[index].read = true;
-                        });
-                      }
-                  ),
+                filteredList[index].read ? Colors.white30 : Colors.white;
+                return AnimationConfiguration.synchronized(
+                  duration: const Duration(milliseconds: 500),
+                  child: SlideAnimation(
+                      verticalOffset: 100.0,
+                      child: FadeInAnimation(
+                        child: Card(
+                          child: ListTile(
+                            title: Text(filteredList[index].title,
+                                style: TextStyle(color: textColor, fontSize: 15.0)),
+                            subtitle: buildSubtitleRichText(filteredList[index]),
+                            trailing:
+                            buildBookmarkIconButton(filteredList[index], context),
+                              onTap: () {
+                                _launchURL(filteredList[index].url);
+                                setState(() {
+                                  filteredList[index].read = true;
+                                });
+                              }),
+                          ),
+                        ),
+                      ),
                 );
-              },
-              separatorBuilder: (BuildContext context, int index) => Divider());
+              }, separatorBuilder: (BuildContext context, int index) => Divider());
+
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
         }
@@ -168,11 +169,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       var sources = json.decode(sourcesResponse.body) as List;
       List<Article> articles = new List();
       for (String source in sources) {
-        final response = await http.get('$host/api/v1/source/$source');
+        showBottomToast('Fetching articles from $source');
+        final response = await http.get('$host/api/v1/source/$source?articleNumber=35');
         if (response.statusCode != 200) {
-          throw Exception('Failed to load Articles');
+          showBottomToast('Failed to fetch arcticle from $source');
         }
-        var jsonArticles = json.decode(utf8convert(response.body)) as List;
+
+        var jsonArticles = getJsonArticles(response.body) as List;
         jsonArticles
             .map((jsonArticle) => Article.fromJson(jsonArticle))
             .forEach((article) => articles.add(article));
@@ -181,6 +184,25 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     } else {
       throw Exception('Failed to load sources.');
     }
+  }
+
+  // hack :(
+  dynamic getJsonArticles(String body) {
+    try {
+      return json.decode(utf8convert(body));
+    } catch (error) {
+      return json.decode(body);
+    }
+  }
+
+  void showBottomToast(String message) {
+    showToast(message,
+      duration: Duration(seconds: 2),
+      position: ToastPosition.bottom,
+      backgroundColor: Colors.white,
+      radius: 5.0,
+      textStyle: TextStyle(fontSize: 16.0, color: Colors.black),
+    );
   }
 
   String utf8convert(String text) {
@@ -283,5 +305,4 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       throw 'Could not launch $url';
     }
   }
-
 }

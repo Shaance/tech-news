@@ -175,7 +175,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           showBottomToast('Failed to fetch arcticle from $source');
         }
 
-        var jsonArticles = getJsonArticles(response.body) as List;
+        var jsonArticles = json.decode(response.body) as List;
         jsonArticles
             .map((jsonArticle) => Article.fromJson(jsonArticle))
             .forEach((article) => articles.add(article));
@@ -183,15 +183,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       return articles;
     } else {
       throw Exception('Failed to load sources.');
-    }
-  }
-
-  // hack :(
-  dynamic getJsonArticles(String body) {
-    try {
-      return json.decode(utf8convert(body));
-    } catch (error) {
-      return json.decode(body);
     }
   }
 
@@ -203,11 +194,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       radius: 5.0,
       textStyle: TextStyle(fontSize: 16.0, color: Colors.black),
     );
-  }
-
-  String utf8convert(String text) {
-    List<int> bytes = text.toString().codeUnits;
-    return utf8.decode(bytes);
   }
 
   SpeedDial buildSpeedDial() {

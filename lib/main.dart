@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -61,7 +62,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final AppConfig config;
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
-  Future<List<Article>> articles;
+  List<Article> articles;
   GlobalKey<RefreshIndicatorState> globalKey;
 
   TechArticlesWidgetState({this.config});
@@ -72,7 +73,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     super.initState();
     globalKey = GlobalKey<RefreshIndicatorState>();
     log.fine('initState');
-    articles = fetchArticles();
   }
 
   @override
@@ -88,17 +88,12 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         backgroundColor: Colors.grey,
         key: globalKey,
         onRefresh: () async {
-          final oldArticles = await articles;
-          final seen = oldArticles.map((e) => e.url).toSet();
-          final newArticles = await fetchArticles();
-          final refreshedArticles = newArticles
-              .where((article) => !seen.contains(article.url))
-              .toList();
-          refreshedArticles.addAll(oldArticles);
           setState(() {
-            articles = Future.value(refreshedArticles);
+            fetchArticles(articles).then((value) {
+              articles = value;
+              return value;
+            });
           });
-          showBottomToast('All articles loaded!');
         },
         child: data,
       ),
@@ -108,7 +103,11 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   FutureBuilder<List<Article>> buildDataFutureBuilder() {
     return new FutureBuilder<List<Article>>(
-      future: articles,
+      future:
+        fetchArticles(articles).then((value) {
+          articles = value;
+          return value;
+        }),
       builder: (BuildContext context, AsyncSnapshot<List<Article>> snapshot) {
         if (snapshot.hasData) {
           List<Article> filteredList = snapshot.data;
@@ -125,31 +124,33 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               itemCount: filteredList.length,
               itemBuilder: (BuildContext context, int index) {
                 var textColor =
-                filteredList[index].read ? Colors.white30 : Colors.white;
+                    filteredList[index].read ? Colors.white30 : Colors.white;
                 return AnimationConfiguration.synchronized(
                   duration: const Duration(milliseconds: 500),
                   child: SlideAnimation(
-                      verticalOffset: 100.0,
-                      child: FadeInAnimation(
-                        child: Card(
-                          child: ListTile(
+                    verticalOffset: 100.0,
+                    child: FadeInAnimation(
+                      child: Card(
+                        child: ListTile(
                             title: Text(filteredList[index].title,
-                                style: TextStyle(color: textColor, fontSize: 15.0)),
-                            subtitle: buildSubtitleRichText(filteredList[index]),
-                            trailing:
-                            buildBookmarkIconButton(filteredList[index], context),
-                              onTap: () {
-                                _launchURL(filteredList[index].url);
-                                setState(() {
-                                  filteredList[index].read = true;
-                                });
-                              }),
-                          ),
-                        ),
+                                style: TextStyle(
+                                    color: textColor, fontSize: 15.0)),
+                            subtitle:
+                                buildSubtitleRichText(filteredList[index]),
+                            trailing: buildBookmarkIconButton(
+                                filteredList[index], context),
+                            onTap: () {
+                              _launchURL(filteredList[index].url);
+                              setState(() {
+                                filteredList[index].read = true;
+                              });
+                            }),
                       ),
+                    ),
+                  ),
                 );
-              }, separatorBuilder: (BuildContext context, int index) => Divider());
-
+              },
+              separatorBuilder: (BuildContext context, int index) => Divider());
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
         }
@@ -162,33 +163,46 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  Future<List<Article>> fetchArticles() async {
+  Future<List<Article>> fetchArticles(List<Article> oldArticles) async {
     final host = config.apiUrl;
     final sourcesResponse = await http.get('$host/api/v1/info/sources');
     if (sourcesResponse.statusCode == 200) {
       var sources = json.decode(sourcesResponse.body) as List;
-      List<Article> articles = new List();
-      for (String source in sources) {
-        showBottomToast('Fetching articles from $source');
-        final response = await http.get('$host/api/v1/source/$source?articleNumber=35');
-        if (response.statusCode != 200) {
-          showBottomToast('Failed to fetch arcticle from $source');
-        }
+      var futures = <Future>[];
 
-        var jsonArticles = json.decode(response.body) as List;
-        jsonArticles
-            .map((jsonArticle) => Article.fromJson(jsonArticle))
-            .forEach((article) => articles.add(article));
+      List<Article> result = new List();
+      Set<String> seen = new Set();
+      if (oldArticles != null) {
+        result = List.from(oldArticles);
+        seen = oldArticles.map((a) => a.url).toSet();
       }
-      return articles;
+
+      showBottomToast('Fetching articles from ${sources.join(", ")}', 3);
+      for (String source in sources) {
+        futures.add(http.get('$host/api/v1/source/$source?articleNumber=35')
+          .then((response) {
+            var jsonArticles = json.decode(response.body) as List;
+            jsonArticles
+            .map((jsonArticle) => Article.fromJson(jsonArticle))
+            .forEach((article) {
+              if (!seen.contains(article.url)) {
+                result.add(article);
+                seen.add(article.url);
+              }
+            });
+        }));
+      }
+      await Future.wait(futures);
+      return result;
     } else {
       throw Exception('Failed to load sources.');
     }
   }
 
-  void showBottomToast(String message) {
-    showToast(message,
-      duration: Duration(seconds: 2),
+  void showBottomToast(String message, int durationInSeconds) {
+    showToast(
+      message,
+      duration: Duration(seconds: durationInSeconds),
       position: ToastPosition.bottom,
       backgroundColor: Colors.white,
       radius: 5.0,

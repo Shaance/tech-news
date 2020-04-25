@@ -67,6 +67,11 @@ SimpleSettingsTile _getSourcesSettingsTile() {
                 title: 'Uber engineering blog',
               ),
               CheckboxSettingsTile(
+                settingKey: SharedPreferencesHelper.kFacebookKey,
+                defaultValue: SharedPreferencesHelper.kDefaultSourceFetch,
+                title: 'Facebook engineering blog',
+              ),
+              CheckboxSettingsTile(
                 settingKey: SharedPreferencesHelper.kNetflixKey,
                 defaultValue: SharedPreferencesHelper.kDefaultSourceFetch,
                 title: 'Netflix technology blog',
@@ -81,6 +86,7 @@ SimpleSettingsTile _getSourcesSettingsTile() {
                 defaultValue: SharedPreferencesHelper.kDefaultSourceFetch,
                 title: 'Hackernews website',
               ),
+
             ]
         )
       ],

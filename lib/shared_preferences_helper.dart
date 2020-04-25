@@ -12,6 +12,7 @@ class SharedPreferencesHelper {
   static final String kNetflixKey = "netflix";
   static final String kAndroidPoliceKey = "androidpolice";
   static final String kHackernewsKey = "hackernews";
+  static final String kFacebookKey = "facebook";
 
   static final String kDefaultNumberOfArticles = '25';
   static final bool kDefaultSourceFetch = true;
@@ -21,6 +22,7 @@ class SharedPreferencesHelper {
     kNetflixKey,
     kAndroidPoliceKey,
     kHackernewsKey,
+    kFacebookKey
   ];
   static final List<String> kDefaultArticleSourcesToDisplay = [
     ...kDefaultArticleSourcesToFetch
@@ -83,6 +85,11 @@ class SharedPreferencesHelper {
   static Future<bool> isHackernewsSourceEnabled() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kHackernewsKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isFacebookSourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kFacebookKey) ?? kDefaultSourceFetch;
   }
   
 }

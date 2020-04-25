@@ -11,6 +11,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:logging/logging.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:technewsaggregator/shared_preferences_helper.dart';
+import 'package:technewsaggregator/shared_preferences_screen.dart';
 import 'package:technewsaggregator/toast_message_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,7 +38,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OKToast(
         child: MaterialApp(
-      title: 'Tech news',
       home: TechArticlesWidget(config: config),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -84,7 +84,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     var data = buildDataFutureBuilder();
 
     return Scaffold(
-      appBar: getAppBar(),
+      appBar: getAppBar(context),
       body: RefreshIndicator(
         color: Colors.black,
         backgroundColor: Colors.grey,
@@ -102,7 +102,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   // TODO add logic
-  AppBar getAppBar() {
+  AppBar getAppBar(BuildContext context) {
     return AppBar(
       title: Text(getAppTitleText()),
       centerTitle: true,
@@ -119,7 +119,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
             padding: EdgeInsets.only(right: 20.0),
             child: GestureDetector(
               onTap: () {
-                showBottomToast('To be implemented', 1);
+                navigateToSettingsPage(context);
               },
               child: Icon(
                   Icons.settings
@@ -127,6 +127,12 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
             )
         ),
       ],
+    );
+  }
+
+  Future navigateToSettingsPage(context) async {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => SharedPreferencesScreen())
     );
   }
 

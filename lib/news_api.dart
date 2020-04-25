@@ -22,8 +22,8 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
         .where((element) => userSources.contains(element))
         .toList();
     showBottomToast('Fetching articles from ${filteredSources.join(", ")}', 3);
+    final articleNb = await SharedPreferencesHelper.getNumberOfArticles();
     for (String source in filteredSources) {
-      final articleNb = await SharedPreferencesHelper.getNumberOfArticles();
       futures.add(http
           .get('$baseUrl/api/v1/source/$source?articleNumber=$articleNb')
           .then((response) {

@@ -7,13 +7,20 @@ class SharedPreferencesHelper {
   static final String kArticleSourcesToDisplayKey = "ARTICLES_SRC_TO_DISPLAY";
   static final String kJSEnabledKey = "JS_ENABLED";
 
+  static final String kDevToKey = "dev-to";
+  static final String kUberKey = "uber";
+  static final String kNetflixKey = "netflix";
+  static final String kAndroidPoliceKey = "androidpolice";
+  static final String kHackernewsKey = "hackernews";
+
   static final String kDefaultNumberOfArticles = '25';
+  static final bool kDefaultSourceFetch = true;
   static final List<String> kDefaultArticleSourcesToFetch = [
-    'dev-to',
-    'uber',
-    'netflix',
-    'androidpolice',
-    'hackernews'
+    kDevToKey,
+    kUberKey,
+    kNetflixKey,
+    kAndroidPoliceKey,
+    kHackernewsKey,
   ];
   static final List<String> kDefaultArticleSourcesToDisplay = [
     ...kDefaultArticleSourcesToFetch
@@ -43,6 +50,39 @@ class SharedPreferencesHelper {
   static Future<bool> isJSEnabled() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kJSEnabledKey) ?? kDefaultJSEnabled;
+  }
+
+  static Future<bool> isSourceEnabled(String key) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (!kDefaultArticleSourcesToFetch.contains(key)) {
+      return false;
+    }
+    return prefs.getBool(key) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isDevToSourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kDevToKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isUberSourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kUberKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isNetflixSourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kNetflixKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isAndroidPoliceSourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kAndroidPoliceKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isHackernewsSourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kHackernewsKey) ?? kDefaultSourceFetch;
   }
   
 }

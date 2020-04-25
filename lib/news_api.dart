@@ -17,10 +17,12 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
         ? oldArticles.map((a) => a.url).toSet()
         : new Set();
 
-    final userSources = await SharedPreferencesHelper.getSourcesToFetchFrom();
-    final filteredSources = sources
-        .where((element) => userSources.contains(element))
-        .toList();
+    final filteredSources = new List();
+    for (String source in sources) {
+      if (await SharedPreferencesHelper.isSourceEnabled(source)) {
+        filteredSources.add(source);
+      }
+    }
     showBottomToast('Fetching articles from ${filteredSources.join(", ")}', 3);
     final articleNb = await SharedPreferencesHelper.getNumberOfArticles();
     for (String source in filteredSources) {

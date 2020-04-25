@@ -20,23 +20,33 @@ SettingsScreen getSettingsScreen() {
 //            SettingsContainer(child: getNumberOfArticlesSettingsTile())
 //          ],
 //      )),
-      getNumberOfArticlesSettingsTile()
+      getNumberOfArticlesSettingsTile(),
+      getJSEnableSettingsTile()
     ],
   );
 }
 
 
 RadioPickerSettingsTile getNumberOfArticlesSettingsTile() {
-
   return RadioPickerSettingsTile(
     settingKey: SharedPreferencesHelper.kNumberOfArticlesKey,
     title: 'Number of articles per source',
     defaultKey: SharedPreferencesHelper.kDefaultNumberOfArticles,
     values: {
-      '10': '10',
-      '25': '25',
-      '50': '50',
-      '75': '75',
+      '10': '10 articles',
+      '25': '25 articles',
+      '50': '50 articles',
+      '75': '75 articles',
     },
+  );
+}
+
+CheckboxSettingsTile getJSEnableSettingsTile() {
+  return CheckboxSettingsTile(
+    settingKey: SharedPreferencesHelper.kJSEnabledKey,
+    defaultValue: SharedPreferencesHelper.kDefaultJSEnabled,
+    title: 'Enable JavaScript',
+    subtitle: 'Enabled, will load full web pages',
+    subtitleIfOff: 'Disabled, web pages will load faster',
   );
 }

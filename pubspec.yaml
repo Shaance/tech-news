@@ -14,7 +14,7 @@ description: All tech news here
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -30,6 +30,7 @@ dependencies:
   oktoast: ^2.1.8
   flutter_staggered_animations: ^0.1.2
   auto_size_text: ^2.1.0
+  shared_preferences: ^0.5.7
 
 dev_dependencies:
   flutter_test:

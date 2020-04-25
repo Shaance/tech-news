@@ -3,19 +3,20 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:oktoast/oktoast.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:auto_size_text/auto_size_text.dart';
+import 'package:logging/logging.dart';
+import 'package:oktoast/oktoast.dart';
+import 'package:technewsaggregator/shared_preferences_helper.dart';
+import 'package:technewsaggregator/toast_message_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_config.dart';
 import 'article.dart';
+import 'news_api.dart';
 
 void main({String env}) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,7 +76,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     super.initState();
     globalKey = GlobalKey<RefreshIndicatorState>();
     log.fine('initState');
-    articles = fetchArticles(new List());
+    articles = fetchArticles(config.apiUrl, new List());
   }
 
   @override
@@ -89,7 +90,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         backgroundColor: Colors.grey,
         key: globalKey,
         onRefresh: () async {
-          var refreshArticles = fetchArticles((await articles));
+          var refreshArticles = fetchArticles(config.apiUrl, (await articles));
           setState(() {
             articles = refreshArticles;
           });
@@ -211,57 +212,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         separatorBuilder: (BuildContext context, int index) => Divider());
   }
 
-  // TODO put this in own class
-  Future<List<Article>> fetchArticles(List<Article> oldArticles) async {
-    final host = config.apiUrl;
-    final sourcesResponse = await http.get('$host/api/v1/info/sources');
-    if (sourcesResponse.statusCode == 200) {
-      var sources = json.decode(sourcesResponse.body) as List;
-      var futures = <Future>[];
-
-      List<Article> result = new List();
-      Set<String> seen = new Set();
-      if (oldArticles != null) {
-        seen = oldArticles.map((a) => a.url).toSet();
-      }
-
-      showBottomToast('Fetching articles from ${sources.join(", ")}', 3);
-      for (String source in sources) {
-        // TODO number of articles to fetch in preferences
-        // TODO otherwise fetch a lot, then limit nb of articles in preferences
-        futures.add(http
-            .get('$host/api/v1/source/$source?articleNumber=30')
-            .then((response) {
-          var jsonArticles = json.decode(response.body) as List;
-          jsonArticles
-              .map((jsonArticle) => Article.fromJson(jsonArticle))
-              .forEach((article) {
-            if (!seen.contains(article.url)) {
-              result.add(article);
-              seen.add(article.url);
-            }
-          });
-        }));
-      }
-      await Future.wait(futures);
-      result.addAll(oldArticles);
-      return result;
-    } else {
-      throw Exception('Failed to load sources.');
-    }
-  }
-
-  void showBottomToast(String message, int durationInSeconds) {
-    showToast(
-      message,
-      duration: Duration(seconds: durationInSeconds),
-      position: ToastPosition.bottom,
-      backgroundColor: Colors.white,
-      radius: 5.0,
-      textStyle: TextStyle(fontSize: 16.0, color: Colors.black),
-    );
-  }
-
   SpeedDial buildSpeedDial() {
     return SpeedDial(
       backgroundColor: Colors.grey,
@@ -351,9 +301,9 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   _launchURL(String url) async {
+    final enableJS = await SharedPreferencesHelper.isJSEnabled();
     if (await canLaunch(url)) {
-      // TODO enable JS in preferences
-      await launch(url, forceWebView: true);
+      await launch(url, forceWebView: true, enableJavaScript: enableJS);
     } else {
       throw 'Could not launch $url';
     }

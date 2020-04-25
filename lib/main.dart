@@ -38,12 +38,14 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
       title: 'Tech news',
       home: TechArticlesWidget(config: config),
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.blue,
+        primaryColor: Colors.indigoAccent,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
+        primaryColor: Colors.indigoAccent,
       ),
     ));
   }
@@ -70,7 +72,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     globalKey = GlobalKey<RefreshIndicatorState>();
     log.fine('initState');
@@ -105,7 +106,9 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       title: Text(getAppTitleText()),
       centerTitle: true,
       leading: GestureDetector(
-        onTap: () { /* Write listener code here */ },
+        onTap: () {
+          showBottomToast('To be implemented', 1);
+        },
         child: Icon(
           Icons.filter_list,  // add custom icons also
         ),
@@ -115,7 +118,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
             padding: EdgeInsets.only(right: 20.0),
             child: GestureDetector(
               onTap: () {
-//                log.info('Tappped on gear icon');
+                showBottomToast('To be implemented', 1);
               },
               child: Icon(
                   Icons.settings
@@ -145,6 +148,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
+  // TODO support unread saved articles
   List<Article> filterArticles(List<Article> list) {
     if (_showOnlySavedArticles) {
       list = list.where((element) => element.saved).toList();
@@ -154,9 +158,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     return list;
   }
 
+  // TODO support unread saved articles
   String getAppTitleText() {
     if (_showOnlySavedArticles) {
-      return 'Saved artciles';
+      return 'Saved articles';
     } else if (_hideReadArticles) {
       return 'Unread articles';
     } else {
@@ -166,7 +171,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   ListView buildArticleListView(List<Article> filteredList) {
     return ListView.separated(
-        padding: const EdgeInsets.all(13.0),
+        padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 10),
         itemCount: filteredList.length,
         itemBuilder: (BuildContext context, int index) {
           var textColor =
@@ -181,12 +186,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                       title: AutoSizeText(
                         filteredList[index].title,
                         style: TextStyle(color: textColor, fontSize: 15.0),
-                        maxLines: 3,
+                        maxLines: 2,
+                        minFontSize: 15,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      contentPadding: EdgeInsets.all(12),
                       subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 5.0),
+                        padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
                         child: buildSubtitleRichText(filteredList[index]),
                       ),
                       trailing:
@@ -205,6 +211,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         separatorBuilder: (BuildContext context, int index) => Divider());
   }
 
+  // TODO put this in own class
   Future<List<Article>> fetchArticles(List<Article> oldArticles) async {
     final host = config.apiUrl;
     final sourcesResponse = await http.get('$host/api/v1/info/sources');
@@ -220,6 +227,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
       showBottomToast('Fetching articles from ${sources.join(", ")}', 3);
       for (String source in sources) {
+        // TODO number of articles to fetch in preferences
+        // TODO otherwise fetch a lot, then limit nb of articles in preferences
         futures.add(http
             .get('$host/api/v1/source/$source?articleNumber=30')
             .then((response) {
@@ -343,6 +352,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   _launchURL(String url) async {
     if (await canLaunch(url)) {
+      // TODO enable JS in preferences
       await launch(url, forceWebView: true);
     } else {
       throw 'Could not launch $url';

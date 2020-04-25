@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 import 'app_config.dart';
 import 'article.dart';
@@ -81,9 +82,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     var data = buildDataFutureBuilder();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Tech news'),
-      ),
+      appBar: getAppBar(),
       body: RefreshIndicator(
         color: Colors.black,
         backgroundColor: Colors.grey,
@@ -97,6 +96,33 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         child: data,
       ),
       floatingActionButton: buildSpeedDial(),
+    );
+  }
+
+  // TODO add logic
+  AppBar getAppBar() {
+    return AppBar(
+      title: Text(getAppTitleText()),
+      centerTitle: true,
+      leading: GestureDetector(
+        onTap: () { /* Write listener code here */ },
+        child: Icon(
+          Icons.filter_list,  // add custom icons also
+        ),
+      ),
+      actions: <Widget>[
+        Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child: GestureDetector(
+              onTap: () {
+//                log.info('Tappped on gear icon');
+              },
+              child: Icon(
+                  Icons.settings
+              ),
+            )
+        ),
+      ],
     );
   }
 
@@ -128,6 +154,16 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     return list;
   }
 
+  String getAppTitleText() {
+    if (_showOnlySavedArticles) {
+      return 'Saved artciles';
+    } else if (_hideReadArticles) {
+      return 'Unread articles';
+    } else {
+      return 'All articles';
+    }
+  }
+
   ListView buildArticleListView(List<Article> filteredList) {
     return ListView.separated(
         padding: const EdgeInsets.all(13.0),
@@ -142,9 +178,17 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               child: FadeInAnimation(
                 child: Card(
                   child: ListTile(
-                      title: Text(filteredList[index].title,
-                          style: TextStyle(color: textColor, fontSize: 15.0)),
-                      subtitle: buildSubtitleRichText(filteredList[index]),
+                      title: AutoSizeText(
+                        filteredList[index].title,
+                        style: TextStyle(color: textColor, fontSize: 15.0),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: buildSubtitleRichText(filteredList[index]),
+                      ),
                       trailing:
                           buildBookmarkIconButton(filteredList[index], context),
                       onTap: () {

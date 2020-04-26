@@ -1,4 +1,3 @@
-// TODO put this in own class
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -6,6 +5,21 @@ import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/toast_message_helper.dart';
 
 import 'article.dart';
+
+Future<String> getCategoryQueryParam(String sourceKey) async {
+  final base = '&category=';
+  if (sourceKey == SharedPreferencesHelper.kDevToKey) {
+    return base + await SharedPreferencesHelper.getDevToCategory();
+  } else if (sourceKey == SharedPreferencesHelper.kHackernewsKey) {
+    return base + await SharedPreferencesHelper.getHackernewsCategory();
+  }
+  return '';
+}
+
+Future<String> getArticleNumberQueryParam() async {
+  final base = '?articleNumber=';
+  return base + await SharedPreferencesHelper.getNumberOfArticles();
+}
 
 Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
   final sourcesResponse = await http.get('$baseUrl/api/v1/info/sources');
@@ -24,10 +38,11 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
       }
     }
     showBottomToast('Fetching articles from ${filteredSources.join(", ")}', 3);
-    final articleNb = await SharedPreferencesHelper.getNumberOfArticles();
+    final articleNbQueryParam = await getArticleNumberQueryParam();
     for (String source in filteredSources) {
+      final categoryQueryParam = await getCategoryQueryParam(source);
       futures.add(http
-          .get('$baseUrl/api/v1/source/$source?articleNumber=$articleNb')
+          .get('$baseUrl/api/v1/source/$source$articleNbQueryParam$categoryQueryParam')
           .then((response) {
         var jsonArticles = json.decode(response.body) as List;
         jsonArticles

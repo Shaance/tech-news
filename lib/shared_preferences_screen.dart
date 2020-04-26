@@ -8,16 +8,13 @@ class SharedPreferencesScreen extends StatelessWidget {
     return SettingsScreen(
       title: "Application Settings",
       children: [
-//      SimpleSettingsTile(title: 'Article fetch settings', subtitle: 'Set the number of articles to fetch from sources',
-//        screen: SettingsScreen(
-//          title: 'Fetch settings',
-//          children: <Widget>[
-//            SettingsContainer(child: getNumberOfArticlesSettingsTile())
-//          ],
-//      )),
-        _getSourcesSettingsTile(),
-        _getNumberOfArticlesSettingsTile(),
-        _getJSEnableSettingsTile(),
+        SettingsContainer(
+        children: [
+          _getSourcesSettingsTile(),
+          _getNumberOfArticlesSettingsTile(),
+          _getSourcesCategoriesSettingsTile(),
+          _getJSEnableSettingsTile(),
+        ]),
       ],
     );
   }
@@ -87,6 +84,44 @@ SimpleSettingsTile _getSourcesSettingsTile() {
                 title: 'Hackernews website',
               ),
 
+            ]
+        )
+      ],
+    ),
+  );
+}
+
+SimpleSettingsTile _getSourcesCategoriesSettingsTile() {
+  return SimpleSettingsTile(
+    title: 'Article source category settings',
+    subtitle: 'Set category you want to read from the supported sources',
+    screen: SettingsScreen(
+      title: 'Category settings',
+      children: [
+        SettingsContainer(
+            children: [
+              RadioPickerSettingsTile(
+              settingKey: SharedPreferencesHelper.kDevToCategory,
+                title: 'Dev.to categories',
+                defaultKey: SharedPreferencesHelper.kDefaultDevToCategory,
+                values: {
+                  '': 'Default (landing page)',
+                  'week': 'Best articles of the week',
+                  'month': 'Best articles of the month',
+                  'year': 'Best articles of the year',
+                  'latest': 'Latest articles',
+                  'infinity': 'Best articles of all time',
+                },
+              ),
+              RadioPickerSettingsTile(
+                settingKey: SharedPreferencesHelper.kHackernewsCategory,
+                title: 'Hackernews categories',
+                defaultKey: SharedPreferencesHelper.kDefaultHackernewsCategory,
+                values: {
+                  'best': 'Best articles',
+                  'new': 'Latest articles',
+                },
+              ),
             ]
         )
       ],

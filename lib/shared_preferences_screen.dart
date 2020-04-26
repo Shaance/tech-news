@@ -94,7 +94,7 @@ SimpleSettingsTile _getSourcesSettingsTile() {
 SimpleSettingsTile _getSourcesCategoriesSettingsTile() {
   return SimpleSettingsTile(
     title: 'Article source category settings',
-    subtitle: 'Set category you want to read from the supported sources',
+    subtitle: 'Set category you want to read from',
     screen: SettingsScreen(
       title: 'Category settings',
       children: [

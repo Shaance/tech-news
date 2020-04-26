@@ -13,6 +13,7 @@ class SharedPreferencesScreen extends StatelessWidget {
           _getSourcesSettingsTile(),
           _getNumberOfArticlesSettingsTile(),
           _getSourcesCategoriesSettingsTile(),
+          _getGroupBySourceSettingsTile(),
           _getJSEnableSettingsTile(),
         ]),
       ],
@@ -31,6 +32,16 @@ RadioPickerSettingsTile _getNumberOfArticlesSettingsTile() {
       '50': '50 articles',
       '75': '75 articles',
     },
+  );
+}
+
+CheckboxSettingsTile _getGroupBySourceSettingsTile() {
+  return CheckboxSettingsTile(
+    settingKey: SharedPreferencesHelper.kGroupBySourceKey,
+    defaultValue: SharedPreferencesHelper.kDefaultGroupBySource,
+    title: 'Group articles by source',
+    subtitle: 'Articles will be grouped by source',
+    subtitleIfOff: 'Display the latest articles',
   );
 }
 
@@ -101,7 +112,7 @@ SimpleSettingsTile _getSourcesCategoriesSettingsTile() {
         SettingsContainer(
             children: [
               RadioPickerSettingsTile(
-              settingKey: SharedPreferencesHelper.kDevToCategory,
+              settingKey: SharedPreferencesHelper.kDevToCategoryKey,
                 title: 'Dev.to categories',
                 defaultKey: SharedPreferencesHelper.kDefaultDevToCategory,
                 values: {
@@ -114,7 +125,7 @@ SimpleSettingsTile _getSourcesCategoriesSettingsTile() {
                 },
               ),
               RadioPickerSettingsTile(
-                settingKey: SharedPreferencesHelper.kHackernewsCategory,
+                settingKey: SharedPreferencesHelper.kHackernewsCategoryKey,
                 title: 'Hackernews categories',
                 defaultKey: SharedPreferencesHelper.kDefaultHackernewsCategory,
                 values: {

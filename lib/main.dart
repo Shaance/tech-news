@@ -12,7 +12,6 @@ import 'package:logging/logging.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/shared_preferences_screen.dart';
-import 'package:technewsaggregator/toast_message_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_config.dart';
@@ -84,7 +83,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     var data = buildDataFutureBuilder();
 
     return Scaffold(
-      appBar: getAppBar(context),
+      appBar: getAppBar(),
       body: RefreshIndicator(
         color: Colors.black,
         backgroundColor: Colors.grey,
@@ -101,32 +100,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  // TODO add logic
-  AppBar getAppBar(BuildContext context) {
+  AppBar getAppBar() {
     return AppBar(
       title: Text(getAppTitleText()),
       centerTitle: true,
-      leading: GestureDetector(
-        onTap: () {
-          showBottomToast('To be implemented', 1);
-        },
-        child: Icon(
-          Icons.filter_list,  // add custom icons also
-        ),
-      ),
-      actions: <Widget>[
-        Padding(
-            padding: EdgeInsets.only(right: 20.0),
-            child: GestureDetector(
-              onTap: () {
-                navigateToSettingsPage(context);
-              },
-              child: Icon(
-                  Icons.settings
-              ),
-            )
-        ),
-      ],
     );
   }
 
@@ -155,9 +132,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  // TODO support unread saved articles
   List<Article> filterArticles(List<Article> list) {
-    if (_showOnlySavedArticles) {
+    if (_showOnlySavedArticles && _hideReadArticles) {
+      list = list.where((element) => element.saved && !element.read).toList();
+    } else if (_showOnlySavedArticles) {
       list = list.where((element) => element.saved).toList();
     } else if (_hideReadArticles) {
       list = list.where((element) => !element.read).toList();
@@ -165,9 +143,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     return list;
   }
 
-  // TODO support unread saved articles
   String getAppTitleText() {
-    if (_showOnlySavedArticles) {
+    if (_showOnlySavedArticles && _hideReadArticles) {
+      return 'Saved unread articles';
+    } else if (_showOnlySavedArticles) {
       return 'Saved articles';
     } else if (_hideReadArticles) {
       return 'Unread articles';
@@ -224,6 +203,14 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       animatedIcon: AnimatedIcons.list_view,
       overlayColor: Colors.grey,
       children: [
+        SpeedDialChild(
+            child: Icon(Icons.settings),
+            labelBackgroundColor: Colors.black,
+            label: 'Access application settings',
+            backgroundColor: Colors.white30,
+            onTap: () {
+              navigateToSettingsPage(context);
+            }),
         SpeedDialChild(
             child: Icon(
                 _hideReadArticles ? Icons.visibility : Icons.visibility_off),

@@ -6,8 +6,9 @@ class SharedPreferencesHelper {
   static final String kArticleSourcesToFetchKey = "ARTICLES_SRC_TO_FETCH";
   static final String kArticleSourcesToDisplayKey = "ARTICLES_SRC_TO_DISPLAY";
   static final String kJSEnabledKey = "JS_ENABLED";
-  static final String kDevToCategory = "${kDevToKey}_category";
-  static final String kHackernewsCategory = "${kHackernewsKey}_category";
+  static final String kDevToCategoryKey = "${kDevToKey}_category";
+  static final String kHackernewsCategoryKey = "${kHackernewsKey}_category";
+  static final String kGroupBySourceKey = "GROUP_BY_SOURCE";
 
   static final String kDevToKey = "dev-to";
   static final String kUberKey = "uber";
@@ -18,6 +19,7 @@ class SharedPreferencesHelper {
 
   static final String kDefaultNumberOfArticles = '25';
   static final bool kDefaultSourceFetch = true;
+  static final bool kDefaultGroupBySource = true;
   static final List<String> kDefaultArticleSourcesToFetch = [
     kDevToKey,
     kUberKey,
@@ -26,9 +28,7 @@ class SharedPreferencesHelper {
     kHackernewsKey,
     kFacebookKey
   ];
-  static final List<String> kDefaultArticleSourcesToDisplay = [
-    ...kDefaultArticleSourcesToFetch
-  ];
+
   static final bool kDefaultJSEnabled = false;
   static final String kDefaultDevToCategory = ''; // landing page
   static final String kDefaultHackernewsCategory = 'best';
@@ -43,11 +43,6 @@ class SharedPreferencesHelper {
     return prefs.getStringList(kArticleSourcesToFetchKey) ?? kDefaultArticleSourcesToFetch;
   }
 
-  static Future<List<String>> getSourcesToDisplay() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getStringList(kArticleSourcesToDisplayKey) ?? kDefaultArticleSourcesToDisplay;
-  }
-
   static Future<bool> setSourcesToDisplay(List<String> sources) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.setStringList(kArticleSourcesToDisplayKey, sources);
@@ -56,6 +51,11 @@ class SharedPreferencesHelper {
   static Future<bool> isJSEnabled() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kJSEnabledKey) ?? kDefaultJSEnabled;
+  }
+
+  static Future<bool> isGroupBySourceEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kGroupBySourceKey) ?? kDefaultGroupBySource;
   }
 
   static Future<bool> isSourceEnabled(String key) async {
@@ -68,12 +68,12 @@ class SharedPreferencesHelper {
 
   static Future<String> getDevToCategory() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(kDevToCategory) ?? kDefaultDevToCategory;
+    return prefs.getString(kDevToCategoryKey) ?? kDefaultDevToCategory;
   }
 
   static Future<String> getHackernewsCategory() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(kHackernewsCategory) ?? kDefaultHackernewsCategory;
+    return prefs.getString(kHackernewsCategoryKey) ?? kDefaultHackernewsCategory;
   }
 
   static Future<bool> isDevToSourceEnabled() async {

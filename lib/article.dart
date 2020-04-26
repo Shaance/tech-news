@@ -1,4 +1,3 @@
-// TODO put this in its own class
 class Article {
   final String url;
   final String imageUrl;
@@ -11,13 +10,13 @@ class Article {
 
   Article(
       {this.url,
-        this.imageUrl,
-        this.title,
-        this.author,
-        this.date,
-        this.source,
-        this.read,
-        this.saved});
+      this.imageUrl,
+      this.title,
+      this.author,
+      this.date,
+      this.source,
+      this.read,
+      this.saved});
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(

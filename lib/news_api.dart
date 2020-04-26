@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import "package:collection/collection.dart";
 import 'package:http/http.dart' as http;
 import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/toast_message_helper.dart';
@@ -19,6 +19,14 @@ Future<String> getCategoryQueryParam(String sourceKey) async {
 Future<String> getArticleNumberQueryParam() async {
   final base = '?articleNumber=';
   return base + await SharedPreferencesHelper.getNumberOfArticles();
+}
+
+List<Article> groupBySource(List<Article> original) {
+  final map = groupBy(original, (elem) => elem.source);
+  return [...map.values.expand((list) {
+    list.sort((a, b) => b.date.compareTo(a.date));
+    return list;
+  })];
 }
 
 Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
@@ -57,9 +65,15 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
     }
     await Future.wait(futures);
     result.addAll(oldArticles);
-    return result;
+    if (await SharedPreferencesHelper.isGroupBySourceEnabled()) {
+      return groupBySource(result);
+    } else {
+      result.sort((a, b) => b.date.compareTo(a.date));
+      return result;
+    }
   } else {
     print('Failed to load sources.');
     return Future.value([]);
   }
+
 }

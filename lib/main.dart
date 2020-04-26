@@ -109,8 +109,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   Future navigateToSettingsPage(context) async {
     Navigator.push(context,
-        MaterialPageRoute(builder: (context) => SharedPreferencesScreen())
-    );
+        MaterialPageRoute(builder: (context) => SharedPreferencesScreen()));
   }
 
   FutureBuilder<List<Article>> buildDataFutureBuilder() {
@@ -119,7 +118,15 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       builder: (BuildContext context, AsyncSnapshot<List<Article>> snapshot) {
         if (snapshot.hasData) {
           List<Article> filteredList = filterArticles(snapshot.data);
-          return buildArticleListView(filteredList);
+          if (filteredList.isNotEmpty) {
+            return buildArticleListView(filteredList);
+          } else {
+            return Center(
+                child: Text(
+              "Oops, nothing to see here 🧐",
+              style: TextStyle(fontSize: 20),
+            ));
+          }
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
         }

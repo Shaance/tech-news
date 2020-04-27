@@ -13,6 +13,7 @@ import 'package:oktoast/oktoast.dart';
 import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/shared_preferences_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import 'app_config.dart';
 import 'article.dart';
@@ -175,33 +176,95 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               verticalOffset: 100.0,
               child: FadeInAnimation(
                 child: Card(
-                  child: ListTile(
-                      title: AutoSizeText(
-                        filteredList[index].title,
-                        style: TextStyle(color: textColor, fontSize: 15.0),
-                        maxLines: 2,
-                        minFontSize: 15,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      contentPadding: EdgeInsets.all(12),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-                        child: buildSubtitleRichText(filteredList[index]),
-                      ),
-                      trailing:
-                          buildBookmarkIconButton(filteredList[index], context),
-                      onTap: () {
-                        _launchURL(filteredList[index].url);
-                        setState(() {
-                          filteredList[index].read = true;
-                        });
-                      }),
+                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                  child: getArticleCard(filteredList, index, textColor, context),
                 ),
               ),
             ),
           );
         },
         separatorBuilder: (BuildContext context, int index) => Divider());
+  }
+
+  Widget getArticleCard(List<Article> filteredList, int index, Color textColor,
+      BuildContext context) {
+    if (filteredList[index].imageUrl != null) {
+      return Column(
+        children: <Widget>[
+          SizedBox(height: 0),
+          GestureDetector(
+              onTap: () {
+                _launchURL(filteredList[index].url);
+                setState(() {
+                  filteredList[index].read = true;
+                });
+              },
+              child: Stack(
+                children: <Widget>[
+                  Center(child: Placeholder(
+                      fallbackHeight: 150,
+                      color: Colors.black12,
+                      strokeWidth: 0,
+                  )),
+                  Center(child: FadeInImage.memoryNetwork(
+                      placeholder: kTransparentImage,
+                      image: filteredList[index].imageUrl)
+                  ),
+                ],
+              )),
+          SizedBox(height: 0),
+          buildListTile(filteredList, index, textColor, context)
+        ],
+      );
+    }
+
+    return buildListTile(filteredList, index, textColor, context);
+  }
+
+  ListTile buildListTile(List<Article> filteredList, int index, Color textColor,
+      BuildContext context) {
+    return ListTile(
+        leading: CircleAvatar(
+          radius: 20,
+          backgroundImage: getLogoForSource(filteredList[index]),
+          backgroundColor: Colors.transparent,
+        ),
+        title: AutoSizeText(
+          filteredList[index].title,
+          style: TextStyle(color: textColor, fontSize: 15.0),
+          maxLines: 2,
+          minFontSize: 15,
+          overflow: TextOverflow.ellipsis,
+        ),
+        contentPadding: EdgeInsets.all(12),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+          child: buildSubtitleRichText(filteredList[index]),
+        ),
+        trailing: buildBookmarkIconButton(filteredList[index], context),
+        onTap: () {
+          _launchURL(filteredList[index].url);
+          setState(() {
+            filteredList[index].read = true;
+          });
+        });
+  }
+
+  AssetImage getLogoForSource(Article article) {
+    final basePath = 'assets/images/';
+    if (article.source == 'Facebook') {
+      return AssetImage('${basePath}facebook_logo.png');
+    } else if (article.source == 'Uber') {
+      return AssetImage('${basePath}uber_logo.jpg');
+    } else if (article.source == 'Netflix') {
+      return AssetImage('${basePath}netflix_logo.jpg');
+    } else if (article.source == 'HackerNews') {
+      return AssetImage('${basePath}hackernews_logo.png');
+    } else if (article.source == 'Dev.to') {
+      return AssetImage('${basePath}dev-to_logo.png');
+    } else {
+      return AssetImage('${basePath}androidpolice_logo.png');
+    }
   }
 
   SpeedDial buildSpeedDial() {

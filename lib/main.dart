@@ -334,6 +334,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         icon: Icon(Icons.expand_more),
         color: Colors.white,
         onSelected: popupMenuButtonAction,
+        padding: EdgeInsets.symmetric(horizontal: 5),
         itemBuilder: (BuildContext context) {
           return [
             PopupMenuItem(
@@ -341,8 +342,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                 child: getSaveArticleText(article)),
             PopupMenuItem(
                 value: {'share': article},
-                child: Text("Share article",
-                  style: TextStyle(color: Colors.black))
+                child: Center(
+                  child: Text("Share article",
+                    style: TextStyle(color: Colors.black)),
+                )
             ),
             PopupMenuItem(
                 value: {'read': article},
@@ -351,17 +354,21 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         });
   }
 
-  Text getMarkAsReadText(Article article) {
-    return Text(
-      article.read ? "Mark as unread" : "Mark as read",
-      style: TextStyle(color: Colors.black),
+  Widget getMarkAsReadText(Article article) {
+    return Center(
+      child: Text(
+        article.read ? "Mark as unread" : "Mark as read",
+        style: TextStyle(color: Colors.black),
+      ),
     );
   }
 
-  Text getSaveArticleText(Article article) {
-    return Text(
-      article.saved ? "Unsave article" : "Save article",
-      style: TextStyle(color: Colors.black),
+  Widget getSaveArticleText(Article article) {
+    return Center(
+      child: Text(
+        article.saved ? "Unsave article" : "Save article",
+        style: TextStyle(color: Colors.black),
+      ),
     );
   }
 

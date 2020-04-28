@@ -43,11 +43,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.indigoAccent,
+        primaryColor: Color.fromRGBO(61, 61, 92, 1),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.indigoAccent,
+        primaryColor: Colors.indigo,
       ),
     ));
   }
@@ -65,7 +65,7 @@ class TechArticlesWidget extends StatefulWidget {
 class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final log = Logger('TechArticlesWidget');
   final AppConfig config;
-  final customGrey = Color.fromRGBO(217, 217, 217, 1);
+  final customGrey = Color.fromRGBO(153, 153, 153, 1);
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
   Future<List<Article>> articles;
@@ -297,8 +297,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               });
             }),
         SpeedDialChild(
-            child: Icon(_showOnlySavedArticles ? Icons.star_border : Icons.star,
-                color: Colors.yellowAccent),
+            child: Icon(_showOnlySavedArticles ? Icons.all_inclusive : Icons.book),
             labelBackgroundColor: Colors.black54,
             label: _showOnlySavedArticles
                 ? 'Show all articles'

@@ -14,6 +14,7 @@ import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/shared_preferences_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:share/share.dart';
 
 import 'app_config.dart';
 import 'article.dart';
@@ -177,7 +178,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               child: FadeInAnimation(
                 child: Card(
                   clipBehavior: Clip.antiAliasWithSaveLayer,
-                  child: getArticleCard(filteredList, index, textColor, context),
+                  child:
+                      getArticleCard(filteredList, index, textColor, context),
                 ),
               ),
             ),
@@ -201,15 +203,16 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               },
               child: Stack(
                 children: <Widget>[
-                  Center(child: Placeholder(
-                      fallbackHeight: 150,
-                      color: Colors.black12,
-                      strokeWidth: 0,
+                  Center(
+                      child: Placeholder(
+                    fallbackHeight: 150,
+                    color: Colors.black12,
+                    strokeWidth: 0,
                   )),
-                  Center(child: FadeInImage.memoryNetwork(
-                      placeholder: kTransparentImage,
-                      image: filteredList[index].imageUrl)
-                  ),
+                  Center(
+                      child: FadeInImage.memoryNetwork(
+                          placeholder: kTransparentImage,
+                          image: filteredList[index].imageUrl)),
                 ],
               )),
           SizedBox(height: 0),
@@ -241,7 +244,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
           child: buildSubtitleRichText(filteredList[index]),
         ),
-        trailing: buildBookmarkIconButton(filteredList[index], context),
+        trailing: getArticlePopupMenuButton(filteredList[index]),
         onTap: () {
           _launchURL(filteredList[index].url);
           setState(() {
@@ -326,41 +329,71 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     ));
   }
 
-  IconButton buildBookmarkIconButton(Article article, BuildContext context) {
-    var color;
-    if (article.read) {
-      color = Colors.white30;
-    } else if (article.saved) {
-      color = Colors.white;
-    }
-
-    return new IconButton(
-        icon: Icon(article.saved ? Icons.bookmark : Icons.bookmark_border,
-            color: color),
-        onPressed: () {
-          bookmark(context, article);
+  PopupMenuButton getArticlePopupMenuButton(Article article) {
+    return PopupMenuButton<Map<String, Article>>(
+        icon: Icon(Icons.expand_more),
+        color: Colors.white,
+        onSelected: popupMenuButtonAction,
+        itemBuilder: (BuildContext context) {
+          return [
+            PopupMenuItem(
+                value: {'save': article},
+                child: getSaveArticleText(article)),
+            PopupMenuItem(
+                value: {'share': article},
+                child: Text("Share article",
+                  style: TextStyle(color: Colors.black))
+            ),
+            PopupMenuItem(
+                value: {'read': article},
+                child: getMarkAsReadText(article)),
+          ];
         });
   }
 
-  void bookmark(BuildContext context, Article article) {
-    setState(() {
-      final scaffold = Scaffold.of(context);
-      article.saved = !article.saved;
-      if (article.saved) {
-        scaffold.showSnackBar(SnackBar(
-          content: Text('${article.title} article saved!'),
-          action: SnackBarAction(
-              label: 'UNDO',
-              onPressed: () {
-                scaffold.hideCurrentSnackBar();
-                setState(() {
-                  article.saved = !article.saved;
-                });
-              }),
-          duration: Duration(milliseconds: 2000),
-        ));
+  Text getMarkAsReadText(Article article) {
+    return Text(
+      article.read ? "Mark as unread" : "Mark as read",
+      style: TextStyle(color: Colors.black),
+    );
+  }
+
+  Text getSaveArticleText(Article article) {
+    return Text(
+      article.saved ? "Unsave article" : "Save article",
+      style: TextStyle(color: Colors.black),
+    );
+  }
+
+  void popupMenuButtonAction(Map<String, Article> choice) {
+    if (choice.containsKey('save')) {
+      setState(() {
+        choice['save'].saved = !choice['save'].saved;
+      });
+      if (!choice['save'].saved) {
+        showSnackBar(Text('Unsaved ${choice['save'].title}'));
+      } else {
+        showSnackBar(Text('${choice['save'].title} saved!'));
       }
-    });
+    } else if (choice.containsKey('read')) {
+      setState(() {
+        choice['read'].read = !choice['read'].read;
+        if (choice['read'].read) {
+          showSnackBar(Text('${choice['read'].title} marked as read'));
+        } else {
+          showSnackBar(Text('${choice['read'].title} marked as unread'));
+        }
+      });
+    } else {
+      Share.share(choice['share'].url);
+    }
+  }
+
+  void showSnackBar(Text text, { milliseconds = 1500 }) {
+    final scaffold = Scaffold.of(globalKey.currentState.context);
+    scaffold.showSnackBar(
+        SnackBar(content: text, duration: Duration(milliseconds: milliseconds))
+    );
   }
 
   _launchURL(String url) async {

@@ -33,6 +33,7 @@ dependencies:
   shared_preferences: ^0.5.7
   shared_preferences_settings: ^1.2.0
   transparent_image: ^1.0.0
+  share: ^0.6.4
 
 dev_dependencies:
   flutter_test:

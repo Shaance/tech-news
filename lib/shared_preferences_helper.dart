@@ -19,7 +19,7 @@ class SharedPreferencesHelper {
 
   static final String kDefaultNumberOfArticles = '25';
   static final bool kDefaultSourceFetch = true;
-  static final bool kDefaultGroupBySource = true;
+  static final bool kDefaultGroupBySource = false;
   static final List<String> kDefaultArticleSourcesToFetch = [
     kDevToKey,
     kUberKey,

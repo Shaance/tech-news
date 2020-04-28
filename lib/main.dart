@@ -275,7 +275,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     return SpeedDial(
       backgroundColor: customGrey,
       animatedIcon: AnimatedIcons.list_view,
-      overlayColor: customGrey,
+      overlayColor: Color.fromRGBO(140, 140, 140, 1),
       children: [
         SpeedDialChild(
             child: Icon(Icons.settings),
@@ -318,14 +318,17 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   RichText buildSubtitleRichText(Article article) {
     final readSuffix = article.read ? ' · read' : '';
+    final savedSuffix = article.saved ? ' · saved' : '';
     final color = article.read ? Colors.white30 : Colors.white70;
     return RichText(
         text: TextSpan(
-      text: article.date.toString().substring(0, 10) + ' | ' + article.source,
+      text: article.date.toString().substring(0, 10),
       style: TextStyle(color: color, fontSize: 12.0),
       children: <TextSpan>[
         TextSpan(
             text: readSuffix, style: TextStyle(fontWeight: FontWeight.bold)),
+        TextSpan(
+            text: savedSuffix, style: TextStyle(fontWeight: FontWeight.bold)),
       ],
     ));
   }
@@ -339,18 +342,15 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         itemBuilder: (BuildContext context) {
           return [
             PopupMenuItem(
-                value: {'save': article},
-                child: getSaveArticleText(article)),
+                value: {'save': article}, child: getSaveArticleText(article)),
             PopupMenuItem(
                 value: {'share': article},
                 child: Center(
                   child: Text("Share article",
-                    style: TextStyle(color: Colors.black)),
-                )
-            ),
+                      style: TextStyle(color: Colors.black)),
+                )),
             PopupMenuItem(
-                value: {'read': article},
-                child: getMarkAsReadText(article)),
+                value: {'read': article}, child: getMarkAsReadText(article)),
           ];
         });
   }
@@ -397,11 +397,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     }
   }
 
-  void showSnackBar(Text text, { milliseconds = 1500 }) {
+  void showSnackBar(Text text, {milliseconds = 1500}) {
     final scaffold = Scaffold.of(globalKey.currentState.context);
-    scaffold.showSnackBar(
-        SnackBar(content: text, duration: Duration(milliseconds: milliseconds))
-    );
+    scaffold.showSnackBar(SnackBar(
+        content: text, duration: Duration(milliseconds: milliseconds)));
   }
 
   _launchURL(String url) async {

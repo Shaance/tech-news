@@ -65,6 +65,7 @@ class TechArticlesWidget extends StatefulWidget {
 class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final log = Logger('TechArticlesWidget');
   final AppConfig config;
+  final customGrey = Color.fromRGBO(217, 217, 217, 1);
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
   Future<List<Article>> articles;
@@ -272,24 +273,24 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   SpeedDial buildSpeedDial() {
     return SpeedDial(
-      backgroundColor: Colors.grey,
+      backgroundColor: customGrey,
       animatedIcon: AnimatedIcons.list_view,
-      overlayColor: Colors.grey,
+      overlayColor: customGrey,
       children: [
         SpeedDialChild(
             child: Icon(Icons.settings),
-            labelBackgroundColor: Colors.black,
+            labelBackgroundColor: Colors.black54,
             label: 'Access application settings',
-            backgroundColor: Colors.white30,
+            backgroundColor: customGrey,
             onTap: () {
               navigateToSettingsPage(context);
             }),
         SpeedDialChild(
             child: Icon(
                 _hideReadArticles ? Icons.visibility : Icons.visibility_off),
-            labelBackgroundColor: Colors.black,
+            labelBackgroundColor: Colors.black54,
             label: (_hideReadArticles ? 'Show' : 'Hide') + ' read articles',
-            backgroundColor: Colors.white30,
+            backgroundColor: customGrey,
             onTap: () {
               setState(() {
                 _hideReadArticles = !_hideReadArticles;
@@ -298,11 +299,11 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         SpeedDialChild(
             child: Icon(_showOnlySavedArticles ? Icons.star_border : Icons.star,
                 color: Colors.yellowAccent),
-            labelBackgroundColor: Colors.black,
+            labelBackgroundColor: Colors.black54,
             label: _showOnlySavedArticles
                 ? 'Show all articles'
                 : 'Show only saved articles',
-            backgroundColor: Colors.white30,
+            backgroundColor: customGrey,
             onTap: () {
               setState(() {
                 _showOnlySavedArticles = !_showOnlySavedArticles;
@@ -332,7 +333,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   PopupMenuButton getArticlePopupMenuButton(Article article) {
     return PopupMenuButton<Map<String, Article>>(
         icon: Icon(Icons.expand_more),
-        color: Colors.white,
+        color: customGrey,
         onSelected: popupMenuButtonAction,
         padding: EdgeInsets.symmetric(horizontal: 5),
         itemBuilder: (BuildContext context) {

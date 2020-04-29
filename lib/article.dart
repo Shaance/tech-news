@@ -1,3 +1,5 @@
+import 'package:technewsaggregator/database_creator.dart';
+
 class Article {
   final String url;
   final String imageUrl;
@@ -20,14 +22,14 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
-        url: json['url'],
-        imageUrl: json['imageUrl'],
-        author: json['author'],
-        date: DateTime.parse(json['date']),
-        title: json['title'],
-        source: json['source'],
-        read: false,
-        saved: false);
+        url: json[DatabaseCreator.id],
+        imageUrl: json[DatabaseCreator.imageUrl],
+        author: json[DatabaseCreator.author],
+        date: DateTime.parse(json[DatabaseCreator.date]),
+        title: json[DatabaseCreator.title],
+        source: json[DatabaseCreator.source],
+        read: json[DatabaseCreator.read]  == 1,
+        saved: json[DatabaseCreator.saved] == 1);
   }
 
   @override

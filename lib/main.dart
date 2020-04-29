@@ -10,6 +10,8 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:logging/logging.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:technewsaggregator/database_creator.dart';
+import 'package:technewsaggregator/repository_service_article.dart';
 import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/shared_preferences_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,6 +28,7 @@ void main({String env}) async {
   Logger.root.onRecord.listen((record) {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
+  await DatabaseCreator.initDatabase();
   final config = await AppConfig.forEnvironment(env);
   runApp(MyApp(config: config));
 }
@@ -66,6 +69,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final log = Logger('TechArticlesWidget');
   final AppConfig config;
   final customGrey = Color.fromRGBO(153, 153, 153, 1);
+  bool first = true;
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
   Future<List<Article>> articles;
@@ -78,7 +82,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     super.initState();
     globalKey = GlobalKey<RefreshIndicatorState>();
     log.fine('initState');
-    articles = fetchArticles(config.apiUrl, new List());
+    articles = RepositoryServiceArticle.getAllArticles();
   }
 
   @override
@@ -92,7 +96,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         backgroundColor: Colors.grey,
         key: globalKey,
         onRefresh: () async {
-          var refreshArticles = fetchArticles(config.apiUrl, (await articles));
+          final oldArticles = await RepositoryServiceArticle.getAllArticles();
+          var refreshArticles = fetchArticles(config.apiUrl, oldArticles);
           setState(() {
             articles = refreshArticles;
           });
@@ -124,10 +129,39 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           if (filteredList.isNotEmpty) {
             return buildArticleListView(filteredList);
           } else {
+            RepositoryServiceArticle.countAll().then((value) {
+              if (value == 0) {
+                articles = fetchArticles(config.apiUrl, List()).then((value) {
+                  setState(() => {});
+                  return value;
+                });
+              }
+            });
+
             return Center(
-                child: Text(
-              "Oops, nothing to see here 🧐",
-              style: TextStyle(fontSize: 20),
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Stack(
+                  children: <Widget>[
+                    Center(
+                        child: Placeholder(
+                          fallbackHeight: 230,
+                          color: Colors.black12,
+                          strokeWidth: 0,
+                        )),
+                    Center(
+                        child: FadeInImage.memoryNetwork(
+                            placeholder: kTransparentImage,
+                            image: 'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
+                  ],
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "Oops, nothing to see here yet .. 🧐?",
+                  style: TextStyle(fontSize: 20),
+                )
+              ],
             ));
           }
         } else if (snapshot.hasError) {
@@ -180,7 +214,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                 child: Card(
                   clipBehavior: Clip.antiAliasWithSaveLayer,
                   child:
-                      getArticleCard(filteredList, index, textColor, context),
+                      getArticleCard(filteredList[index], textColor, context),
                 ),
               ),
             ),
@@ -189,18 +223,18 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         separatorBuilder: (BuildContext context, int index) => Divider());
   }
 
-  Widget getArticleCard(List<Article> filteredList, int index, Color textColor,
-      BuildContext context) {
-    if (filteredList[index].imageUrl != null) {
+  Widget getArticleCard(
+      Article currentArticle, Color textColor, BuildContext context) {
+    if (currentArticle.imageUrl != null) {
       return Column(
         children: <Widget>[
           SizedBox(height: 0),
           GestureDetector(
               onTap: () {
-                _launchURL(filteredList[index].url);
-                setState(() {
-                  filteredList[index].read = true;
-                });
+                _launchURL(currentArticle.url);
+                currentArticle.read = true;
+                RepositoryServiceArticle.updateArticleReadStatus(currentArticle)
+                    .then((_) => {setState(() => {})});
               },
               child: Stack(
                 children: <Widget>[
@@ -213,28 +247,28 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                   Center(
                       child: FadeInImage.memoryNetwork(
                           placeholder: kTransparentImage,
-                          image: filteredList[index].imageUrl)),
+                          image: currentArticle.imageUrl)),
                 ],
               )),
           SizedBox(height: 0),
-          buildListTile(filteredList, index, textColor, context)
+          buildListTile(currentArticle, textColor, context)
         ],
       );
     }
 
-    return buildListTile(filteredList, index, textColor, context);
+    return buildListTile(currentArticle, textColor, context);
   }
 
-  ListTile buildListTile(List<Article> filteredList, int index, Color textColor,
-      BuildContext context) {
+  ListTile buildListTile(
+      Article article, Color textColor, BuildContext context) {
     return ListTile(
         leading: CircleAvatar(
           radius: 20,
-          backgroundImage: getLogoForSource(filteredList[index]),
+          backgroundImage: getLogoForSource(article),
           backgroundColor: Colors.transparent,
         ),
         title: AutoSizeText(
-          filteredList[index].title,
+          article.title,
           style: TextStyle(color: textColor, fontSize: 15.0),
           maxLines: 2,
           minFontSize: 15,
@@ -243,14 +277,14 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         contentPadding: EdgeInsets.all(12),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-          child: buildSubtitleRichText(filteredList[index]),
+          child: buildSubtitleRichText(article),
         ),
-        trailing: getArticlePopupMenuButton(filteredList[index]),
+        trailing: getArticlePopupMenuButton(article),
         onTap: () {
-          _launchURL(filteredList[index].url);
-          setState(() {
-            filteredList[index].read = true;
-          });
+          _launchURL(article.url);
+          article.read = true;
+          RepositoryServiceArticle.updateArticleReadStatus(article)
+              .then((_) => setState(() {}));
         });
   }
 
@@ -286,6 +320,19 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               navigateToSettingsPage(context);
             }),
         SpeedDialChild(
+            child: Icon(Icons.refresh),
+            labelBackgroundColor: Colors.black54,
+            label: 'Refresh article list',
+            backgroundColor: customGrey,
+            onTap: () async {
+              final oldArticles =
+                  await RepositoryServiceArticle.getAllArticles();
+              var refreshArticles = fetchArticles(config.apiUrl, oldArticles);
+              setState(() {
+                articles = refreshArticles;
+              });
+            }),
+        SpeedDialChild(
             child: Icon(
                 _hideReadArticles ? Icons.visibility : Icons.visibility_off),
             labelBackgroundColor: Colors.black54,
@@ -297,7 +344,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               });
             }),
         SpeedDialChild(
-            child: Icon(_showOnlySavedArticles ? Icons.all_inclusive : Icons.book),
+            child:
+                Icon(_showOnlySavedArticles ? Icons.all_inclusive : Icons.book),
             labelBackgroundColor: Colors.black54,
             label: _showOnlySavedArticles
                 ? 'Show all articles'
@@ -374,23 +422,25 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   void popupMenuButtonAction(Map<String, Article> choice) {
     if (choice.containsKey('save')) {
-      setState(() {
-        choice['save'].saved = !choice['save'].saved;
-      });
+      choice['save'].saved = !choice['save'].saved;
+      RepositoryServiceArticle.updateArticleSavedStatus(choice['save'])
+          .then((_) => setState(() {}));
+
       if (!choice['save'].saved) {
         showSnackBar(Text('Unsaved ${choice['save'].title}'));
       } else {
         showSnackBar(Text('${choice['save'].title} saved!'));
       }
     } else if (choice.containsKey('read')) {
-      setState(() {
-        choice['read'].read = !choice['read'].read;
-        if (choice['read'].read) {
-          showSnackBar(Text('${choice['read'].title} marked as read'));
-        } else {
-          showSnackBar(Text('${choice['read'].title} marked as unread'));
-        }
-      });
+      choice['read'].read = !choice['read'].read;
+      RepositoryServiceArticle.updateArticleReadStatus(choice['read'])
+          .then((_) => setState(() {}));
+
+      if (choice['read'].read) {
+        showSnackBar(Text('${choice['read'].title} marked as read'));
+      } else {
+        showSnackBar(Text('${choice['read'].title} marked as unread'));
+      }
     } else {
       Share.share(choice['share'].url);
     }

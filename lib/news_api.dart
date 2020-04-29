@@ -1,6 +1,7 @@
 import 'dart:convert';
 import "package:collection/collection.dart";
 import 'package:http/http.dart' as http;
+import 'package:technewsaggregator/repository_service_article.dart';
 import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/toast_message_helper.dart';
 
@@ -64,10 +65,8 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
       }));
     }
     await Future.wait(futures);
+    result.forEach((article) => RepositoryServiceArticle.addArticle(article));
     result.addAll(oldArticles);
-//    result.forEach((element) {
-//      element.imageUrl = 'https://eng.uber.com/wp-content/uploads/2020/03/Header-Piranha-696x298.jpg';
-//    });
     if (await SharedPreferencesHelper.isGroupBySourceEnabled()) {
       return groupBySource(result);
     } else {

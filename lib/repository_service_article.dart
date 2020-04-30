@@ -1,3 +1,6 @@
+import 'package:technewsaggregator/shared_preferences_helper.dart';
+
+import 'api_helper.dart';
 import 'article.dart';
 import 'database_creator.dart';
 
@@ -9,7 +12,12 @@ class RepositoryServiceArticle {
     if (data.length != 0) {
       List<Article> articles = List();
       for (final node in data) {
-        articles.add(Article.fromJson(node));
+        final article = Article.fromJson(node);
+        final sourceKey = articleSourceToApiSourceKey(article.source);
+        if (await SharedPreferencesHelper.isSourceEnabled(sourceKey)) {
+          articles.add(article);
+        }
+//        if (articleSourceToApiSourceKey(article.source))
       }
       articles.sort((a, b) => b.date.compareTo(a.date));
       return articles;

@@ -18,7 +18,7 @@ class SharedPreferencesHelper {
   static final String kFacebookKey = "facebook";
   static final String kHighScalabilityKey = "highscalability";
 
-  static final String kDefaultNumberOfArticles = '25';
+  static final String kDefaultNumberOfArticles = '50';
   static final bool kDefaultSourceFetch = true;
   static final bool kDefaultGroupBySource = false;
   static final List<String> kDefaultArticleSourcesToFetch = [

@@ -27,10 +27,11 @@ RadioPickerSettingsTile _getNumberOfArticlesSettingsTile() {
     title: 'Number of articles per source',
     defaultKey: SharedPreferencesHelper.kDefaultNumberOfArticles,
     values: {
-      '10': '10 articles',
       '25': '25 articles',
       '50': '50 articles',
       '75': '75 articles',
+      '100': '100 articles',
+      '125': '125 articles',
     },
   );
 }

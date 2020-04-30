@@ -94,7 +94,11 @@ SimpleSettingsTile _getSourcesSettingsTile() {
                 defaultValue: SharedPreferencesHelper.kDefaultSourceFetch,
                 title: 'Hackernews website',
               ),
-
+              CheckboxSettingsTile(
+                settingKey: SharedPreferencesHelper.kHighScalabilityKey,
+                defaultValue: SharedPreferencesHelper.kDefaultSourceFetch,
+                title: 'High Scalability website',
+              ),
             ]
         )
       ],

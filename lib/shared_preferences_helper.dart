@@ -16,6 +16,7 @@ class SharedPreferencesHelper {
   static final String kAndroidPoliceKey = "androidpolice";
   static final String kHackernewsKey = "hackernews";
   static final String kFacebookKey = "facebook";
+  static final String kHighScalabilityKey = "highscalability";
 
   static final String kDefaultNumberOfArticles = '25';
   static final bool kDefaultSourceFetch = true;
@@ -26,7 +27,8 @@ class SharedPreferencesHelper {
     kNetflixKey,
     kAndroidPoliceKey,
     kHackernewsKey,
-    kFacebookKey
+    kFacebookKey,
+    kHighScalabilityKey
   ];
 
   static final bool kDefaultJSEnabled = false;
@@ -89,6 +91,11 @@ class SharedPreferencesHelper {
   static Future<bool> isNetflixSourceEnabled() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kNetflixKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isHighScalabilityEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kHighScalabilityKey) ?? kDefaultSourceFetch;
   }
 
   static Future<bool> isAndroidPoliceSourceEnabled() async {

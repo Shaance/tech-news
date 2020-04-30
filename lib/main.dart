@@ -300,6 +300,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       return AssetImage('${basePath}hackernews_logo.png');
     } else if (article.source == 'Dev.to') {
       return AssetImage('${basePath}dev-to_logo.png');
+    } else if (article.source == 'High scalability') {
+      return AssetImage('${basePath}high-scalability_logo.png');
     } else {
       return AssetImage('${basePath}androidpolice_logo.png');
     }

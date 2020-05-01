@@ -9,6 +9,7 @@ class SharedPreferencesHelper {
   static final String kDevToCategoryKey = "${kDevToKey}_category";
   static final String kHackernewsCategoryKey = "${kHackernewsKey}_category";
   static final String kGroupBySourceKey = "GROUP_BY_SOURCE";
+  static final String kOpenInWebViewKey = "URL_WEBVIEW";
 
   static final String kDevToKey = "dev-to";
   static final String kUberKey = "uber";
@@ -21,6 +22,7 @@ class SharedPreferencesHelper {
   static final String kDefaultNumberOfArticles = '50';
   static final bool kDefaultSourceFetch = true;
   static final bool kDefaultGroupBySource = false;
+  static final bool kDefaultOpenInWebView = false;
   static final List<String> kDefaultArticleSourcesToFetch = [
     kDevToKey,
     kUberKey,
@@ -111,6 +113,11 @@ class SharedPreferencesHelper {
   static Future<bool> isFacebookSourceEnabled() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kFacebookKey) ?? kDefaultSourceFetch;
+  }
+
+  static Future<bool> isWebViewEnabled() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kOpenInWebViewKey) ?? kDefaultOpenInWebView;
   }
   
 }

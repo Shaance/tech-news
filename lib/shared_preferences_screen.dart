@@ -14,6 +14,7 @@ class SharedPreferencesScreen extends StatelessWidget {
           _getNumberOfArticlesSettingsTile(),
           _getSourcesCategoriesSettingsTile(),
           _getGroupBySourceSettingsTile(),
+          _openInWebViewSettingsTile(),
           _getJSEnableSettingsTile(),
         ]),
       ],
@@ -46,10 +47,22 @@ CheckboxSettingsTile _getGroupBySourceSettingsTile() {
   );
 }
 
+CheckboxSettingsTile _openInWebViewSettingsTile() {
+  return CheckboxSettingsTile(
+    settingKey: SharedPreferencesHelper.kOpenInWebViewKey,
+    defaultValue: SharedPreferencesHelper.kDefaultOpenInWebView,
+    title: 'Use WebView instead of browser',
+    subtitle: 'Currently opens links in WebView',
+    subtitleIfOff: 'Currently opens links in the browser',
+  );
+}
+
 CheckboxSettingsTile _getJSEnableSettingsTile() {
   return CheckboxSettingsTile(
     settingKey: SharedPreferencesHelper.kJSEnabledKey,
     defaultValue: SharedPreferencesHelper.kDefaultJSEnabled,
+    visibleIfKey: SharedPreferencesHelper.kOpenInWebViewKey,
+    visibleByDefault: true,
     title: 'Enable JavaScript',
     subtitle: 'Enabled, will load full web pages',
     subtitleIfOff: 'Disabled, web pages will load faster',

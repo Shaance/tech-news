@@ -314,14 +314,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       overlayColor: Color.fromRGBO(140, 140, 140, 1),
       children: [
         SpeedDialChild(
-            child: Icon(Icons.settings),
-            labelBackgroundColor: Colors.black54,
-            label: 'Access application settings',
-            backgroundColor: customGrey,
-            onTap: () {
-              navigateToSettingsPage(context);
-            }),
-        SpeedDialChild(
             child: Icon(Icons.refresh),
             labelBackgroundColor: Colors.black54,
             label: 'Refresh article list',
@@ -360,7 +352,15 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                   _hideReadArticles = false;
                 }
               });
-            })
+            }),
+        SpeedDialChild(
+            child: Icon(Icons.settings),
+            labelBackgroundColor: Colors.black54,
+            label: 'Access application settings',
+            backgroundColor: customGrey,
+            onTap: () {
+              navigateToSettingsPage(context);
+            }),
       ],
     );
   }
@@ -455,9 +455,10 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   _launchURL(String url) async {
+    final enableWebView = await SharedPreferencesHelper.isWebViewEnabled();
     final enableJS = await SharedPreferencesHelper.isJSEnabled();
     if (await canLaunch(url)) {
-      await launch(url, forceWebView: true, enableJavaScript: enableJS);
+      await launch(url, forceWebView: enableWebView, enableJavaScript: enableJS);
     } else {
       throw 'Could not launch $url';
     }

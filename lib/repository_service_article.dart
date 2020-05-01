@@ -17,7 +17,6 @@ class RepositoryServiceArticle {
         if (await SharedPreferencesHelper.isSourceEnabled(sourceKey)) {
           articles.add(article);
         }
-//        if (articleSourceToApiSourceKey(article.source))
       }
       articles.sort((a, b) => b.date.compareTo(a.date));
       return articles;

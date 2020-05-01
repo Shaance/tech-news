@@ -22,12 +22,29 @@ Future<String> getArticleNumberQueryParam() async {
   return base + await SharedPreferencesHelper.getNumberOfArticles();
 }
 
-List<Article> groupBySource(List<Article> original) {
+Future<List<Article>> groupBySource(List<Article> original) async {
+  final limit = int.parse(await SharedPreferencesHelper.getNumberOfArticles());
   final map = groupBy(original, (elem) => elem.source);
   return [...map.values.expand((list) {
     list.sort((a, b) => b.date.compareTo(a.date));
-    return list;
+    return  list.sublist(0, limit);
   })];
+}
+
+
+Future<List<Article>> limitBySource(List<Article> original) async {
+  final limit = int.parse(await SharedPreferencesHelper.getNumberOfArticles());
+  final map = groupBy(original, (elem) => elem.source);
+
+  // get the latest articles from each source + limit
+  map.entries.forEach((element) {
+    element.value.sort((a, b) => b.date.compareTo(a.date));
+    map[element.key] = element.value.sublist(0, limit);
+  });
+
+  final allArticles = [... map.values.expand((list) => [... list])];
+  allArticles.sort((a, b) => b.date.compareTo(a.date));
+  return allArticles;
 }
 
 Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
@@ -73,10 +90,9 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
     result.forEach((article) => RepositoryServiceArticle.addArticle(article));
     result.addAll(oldArticles);
     if (await SharedPreferencesHelper.isGroupBySourceEnabled()) {
-      return groupBySource(result);
+      return await groupBySource(result);
     } else {
-      result.sort((a, b) => b.date.compareTo(a.date));
-      return result;
+      return await limitBySource(result);
     }
   } else {
     print('Failed to load sources.');

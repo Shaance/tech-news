@@ -110,7 +110,9 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   AppBar getAppBar() {
     return AppBar(
-      title: Text(getAppTitleText()),
+      title: AnimatedSwitcher(
+          duration: Duration(milliseconds: 250),
+          child: Text(getAppTitleText(), key: ValueKey(getAppTitleText()))),
       centerTitle: true,
     );
   }
@@ -146,14 +148,15 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                   children: <Widget>[
                     Center(
                         child: Placeholder(
-                          fallbackHeight: 230,
-                          color: Colors.black12,
-                          strokeWidth: 0,
-                        )),
+                      fallbackHeight: 230,
+                      color: Colors.black12,
+                      strokeWidth: 0,
+                    )),
                     Center(
                         child: FadeInImage.memoryNetwork(
                             placeholder: kTransparentImage,
-                            image: 'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
+                            image:
+                                'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
                   ],
                 ),
                 SizedBox(height: 20),
@@ -458,7 +461,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     final enableWebView = await SharedPreferencesHelper.isWebViewEnabled();
     final enableJS = await SharedPreferencesHelper.isJSEnabled();
     if (await canLaunch(url)) {
-      await launch(url, forceWebView: enableWebView, enableJavaScript: enableJS);
+      await launch(url,
+          forceWebView: enableWebView, enableJavaScript: enableJS);
     } else {
       throw 'Could not launch $url';
     }

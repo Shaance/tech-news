@@ -62,7 +62,7 @@ CheckboxSettingsTile _getJSEnableSettingsTile() {
     settingKey: SharedPreferencesHelper.kJSEnabledKey,
     defaultValue: SharedPreferencesHelper.kDefaultJSEnabled,
     visibleIfKey: SharedPreferencesHelper.kOpenInWebViewKey,
-    visibleByDefault: true,
+    visibleByDefault: !SharedPreferencesHelper.kDefaultOpenInWebView,
     title: 'Enable JavaScript',
     subtitle: 'Enabled, will load full web pages',
     subtitleIfOff: 'Disabled, web pages will load faster',

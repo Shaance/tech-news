@@ -69,6 +69,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final log = Logger('TechArticlesWidget');
   final AppConfig config;
   final customGrey = Color.fromRGBO(153, 153, 153, 1);
+  String _articleListKey;
   bool first = true;
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
@@ -109,10 +110,11 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   AppBar getAppBar() {
+    final title = getAppTitleText();
     return AppBar(
       title: AnimatedSwitcher(
           duration: Duration(milliseconds: 250),
-          child: Text(getAppTitleText(), key: ValueKey(getAppTitleText()))),
+          child: Text(title, key: ValueKey(title))),
       centerTitle: true,
     );
   }
@@ -123,13 +125,17 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   FutureBuilder<List<Article>> buildDataFutureBuilder() {
+
     return new FutureBuilder<List<Article>>(
       future: articles,
       builder: (BuildContext context, AsyncSnapshot<List<Article>> snapshot) {
         if (snapshot.hasData) {
           List<Article> filteredList = filterArticles(snapshot.data);
+          _articleListKey = filteredList.map((a) => a.url).join();
           if (filteredList.isNotEmpty) {
-            return buildArticleListView(filteredList);
+            return AnimatedSwitcher(
+              duration: Duration(milliseconds: 250),
+              child: buildArticleListView(filteredList), key: ValueKey(_articleListKey));
           } else {
             RepositoryServiceArticle.countAll().then((value) {
               if (value == 0) {
@@ -140,32 +146,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               }
             });
 
-            return Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Stack(
-                  children: <Widget>[
-                    Center(
-                        child: Placeholder(
-                      fallbackHeight: 230,
-                      color: Colors.black12,
-                      strokeWidth: 0,
-                    )),
-                    Center(
-                        child: FadeInImage.memoryNetwork(
-                            placeholder: kTransparentImage,
-                            image:
-                                'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "Oops, nothing to see here yet .. 🧐?",
-                  style: TextStyle(fontSize: 20),
-                )
-              ],
-            ));
+            return buildNoContentWidget();
           }
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
@@ -177,6 +158,35 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         );
       },
     );
+  }
+
+  Center buildNoContentWidget() {
+    return Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Stack(
+                children: <Widget>[
+                  Center(
+                      child: Placeholder(
+                    fallbackHeight: 230,
+                    color: Colors.black12,
+                    strokeWidth: 0,
+                  )),
+                  Center(
+                      child: FadeInImage.memoryNetwork(
+                          placeholder: kTransparentImage,
+                          image:
+                              'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
+                ],
+              ),
+              SizedBox(height: 20),
+              Text(
+                "Oops, nothing to see here yet .. 🧐?",
+                style: TextStyle(fontSize: 20),
+              )
+            ],
+          ));
   }
 
   List<Article> filterArticles(List<Article> list) {

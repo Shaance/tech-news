@@ -33,7 +33,7 @@ class SharedPreferencesHelper {
     kHighScalabilityKey
   ];
 
-  static final bool kDefaultJSEnabled = false;
+  static final bool kDefaultJSEnabled = true;
   static final String kDefaultDevToCategory = ''; // landing page
   static final String kDefaultHackernewsCategory = 'best';
 

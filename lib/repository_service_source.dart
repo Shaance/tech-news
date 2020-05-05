@@ -1,86 +1,67 @@
 import 'package:technewsaggregator/shared_preferences_helper.dart';
+import 'package:technewsaggregator/source.dart';
 
 import 'api_helper.dart';
 import 'article.dart';
 import 'database_creator.dart';
 
-class RepositoryServiceArticle {
+class RepositoryServiceSource {
 
-  static Future<List<Article>> getAllArticles() async {
-    final sql = '''SELECT * FROM ${DatabaseCreator.articleTable}''';
+  static Future<List<Source>> getAllSources() async {
+    final sql = '''SELECT * FROM ${DatabaseCreator.sourceTable}''';
     final data = await db.rawQuery(sql);
     if (data.length != 0) {
-      List<Article> articles = List();
+      List<Source> sources = List();
       for (final node in data) {
-        final article = Article.fromJson(node);
-        final sourceKey = articleSourceToApiSourceKey(article.source);
-        if (await SharedPreferencesHelper.isSourceEnabled(sourceKey)) {
-          articles.add(article);
-        }
+        sources.add(Source.fromJson(node));
       }
-      articles.sort((a, b) => b.date.compareTo(a.date));
-      return articles;
+      return sources;
     } else {
       return [];
     }
   }
 
-  static Future<void> addArticle(Article article) async {
-    final sql = '''INSERT INTO ${DatabaseCreator.articleTable}
+  static Future<void> addSource(Source source) async {
+    final sql = '''INSERT INTO ${DatabaseCreator.sourceTable}
     (
-      ${DatabaseCreator.id},
-      ${DatabaseCreator.imageUrl},
-      ${DatabaseCreator.author},
-      ${DatabaseCreator.date},
-      ${DatabaseCreator.title},
-      ${DatabaseCreator.source},
-      ${DatabaseCreator.read},
-      ${DatabaseCreator.saved}
+      ${DatabaseCreator.sourceId},
+      ${DatabaseCreator.sourceTitle},
+      ${DatabaseCreator.sourceFeedUrl},
+      ${DatabaseCreator.sourceUrl}
     )
-    VALUES (?,?,?,?,?,?,?,?)''';
-    List<dynamic> params = [article.url, article.imageUrl, article.author,
-      article.date.toIso8601String(), article.title, article.source,
-      article.read ? 1 : 0, article.saved ? 1 : 0];
-    final result = await db.rawInsert(sql, params);
-//    DatabaseCreator.databaseLog('Add article', sql, null, result, params);
+    VALUES (?,?,?,?)''';
+    List<dynamic> params = [
+      source.key, source.title, source.feedUrl, source.url
+    ];
+
+    await db.rawInsert(sql, params);
   }
 
-  static Future<void> updateArticleReadStatus(Article article) async {
-
-    final sql = '''UPDATE ${DatabaseCreator.articleTable}
-    SET ${DatabaseCreator.read} = ?
-    WHERE ${DatabaseCreator.id} = ?
-    ''';
-
-    List<dynamic> params = [article.read ? 1 : 0, article.url];
-    final result = await db.rawUpdate(sql, params);
-
-//    DatabaseCreator.databaseLog('Update article', sql, null, result, params);
-  }
-
-  static Future<void> updateArticleSavedStatus(Article article) async {
-
-    final sql = '''UPDATE ${DatabaseCreator.articleTable}
-    SET ${DatabaseCreator.saved} = ?
-    WHERE ${DatabaseCreator.id} = ?
-    ''';
-
-    List<dynamic> params = [article.saved ? 1 : 0, article.url];
-    final result = await db.rawUpdate(sql, params);
-
-//    DatabaseCreator.databaseLog('Update article', sql, null, result, params);
+  static Future<Source> getSource(String sourceId) async {
+    final sql = '''SELECT * FROM ${DatabaseCreator.sourceTable}
+    WHERE ${DatabaseCreator.sourceId} = ? ''';
+    List<dynamic> params = [sourceId];
+    final data = await db.rawQuery(sql, params);
+    if (data.length != 0) {
+      List<Source> sources = List();
+      for (final node in data) {
+        sources.add(Source.fromJson(node));
+      }
+      return sources[0];
+    } else {
+      return Future.value();
+    }
   }
 
   static Future<void> deleteAllArticle() async {
 
-    final sql = '''DELETE * FROM ${DatabaseCreator.articleTable}''';
+    final sql = '''DELETE * FROM ${DatabaseCreator.sourceTable}''';
 
-    final result = await db.rawUpdate(sql);
-//    DatabaseCreator.databaseLog('Delete all', sql, null, result);
+    await db.rawUpdate(sql);
   }
 
   static Future<int> countAll() async {
-    final data = await db.rawQuery('''SELECT COUNT(*) FROM ${DatabaseCreator.articleTable}''');
+    final data = await db.rawQuery('''SELECT COUNT(*) FROM ${DatabaseCreator.sourceTable}''');
     int count = data[0].values.elementAt(0);
     int idForNewItem = count++;
     return idForNewItem;

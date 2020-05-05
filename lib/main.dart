@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +18,12 @@ import 'package:technewsaggregator/shared_preferences_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:share/share.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import 'app_config.dart';
 import 'article.dart';
+import 'logo_helper.dart';
 import 'news_api.dart';
 
 void main({String env}) async {
@@ -29,6 +33,7 @@ void main({String env}) async {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
   await DatabaseCreator.initDatabase();
+  await SharedPreferencesHelper.initDefaultSources();
   final config = await AppConfig.forEnvironment(env);
   runApp(MyApp(config: config));
 }
@@ -71,6 +76,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   final customGrey = Color.fromRGBO(153, 153, 153, 1);
   String _articleListKey;
   bool first = true;
+  bool firstError = true;
   bool _hideReadArticles = false;
   bool _showOnlySavedArticles = false;
   Future<List<Article>> articles;
@@ -125,7 +131,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   FutureBuilder<List<Article>> buildDataFutureBuilder() {
-
     return new FutureBuilder<List<Article>>(
       future: articles,
       builder: (BuildContext context, AsyncSnapshot<List<Article>> snapshot) {
@@ -134,15 +139,27 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           _articleListKey = filteredList.map((a) => a.url).join();
           if (filteredList.isNotEmpty) {
             return AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              child: buildArticleListView(filteredList), key: ValueKey(_articleListKey));
+                duration: Duration(milliseconds: 250),
+                child: buildArticleListView(filteredList),
+                key: ValueKey(_articleListKey));
           } else {
             RepositoryServiceArticle.countAll().then((value) {
               if (value == 0) {
-                articles = fetchArticles(config.apiUrl, List()).then((value) {
-                  setState(() => {});
-                  return value;
-                });
+                if (first) {
+                  first = false;
+                  articles = fetchArticles(config.apiUrl, List()).then((value) {
+                    setState(() => {});
+                    return value;
+                  });
+                } else {
+                  if (firstError) {
+                    firstError = false;
+                    showSnackBar(
+                        Text(
+                            'Article fetch failed. Try again with better internet connection'),
+                        milliseconds: 2000);
+                  }
+                }
               }
             });
 
@@ -162,31 +179,31 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
 
   Center buildNoContentWidget() {
     return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Stack(
-                children: <Widget>[
-                  Center(
-                      child: Placeholder(
-                    fallbackHeight: 230,
-                    color: Colors.black12,
-                    strokeWidth: 0,
-                  )),
-                  Center(
-                      child: FadeInImage.memoryNetwork(
-                          placeholder: kTransparentImage,
-                          image:
-                              'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
-                ],
-              ),
-              SizedBox(height: 20),
-              Text(
-                "Oops, nothing to see here yet .. 🧐?",
-                style: TextStyle(fontSize: 20),
-              )
-            ],
-          ));
+        child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Stack(
+          children: <Widget>[
+            Center(
+                child: Placeholder(
+              fallbackHeight: 230,
+              color: Colors.black12,
+              strokeWidth: 0,
+            )),
+            Center(
+                child: FadeInImage.memoryNetwork(
+                    placeholder: kTransparentImage,
+                    image:
+                        'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
+          ],
+        ),
+        SizedBox(height: 20),
+        Text(
+          "Oops, nothing to see here yet .. 🧐?",
+          style: TextStyle(fontSize: 20),
+        )
+      ],
+    ));
   }
 
   List<Article> filterArticles(List<Article> list) {
@@ -212,28 +229,120 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     }
   }
 
-  ListView buildArticleListView(List<Article> filteredList) {
-    return ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 10),
+  Widget buildArticleListView(List<Article> filteredList) {
+    final deviceCurrentSize = MediaQuery.of(context).size;
+
+    if (deviceCurrentSize.width > 600) {
+      return new StaggeredGridView.countBuilder(
+        crossAxisCount: (deviceCurrentSize.width / 450).round(),
         itemCount: filteredList.length,
         itemBuilder: (BuildContext context, int index) {
           var textColor =
               filteredList[index].read ? Colors.white30 : Colors.white;
-          return AnimationConfiguration.synchronized(
-            duration: const Duration(milliseconds: 500),
-            child: SlideAnimation(
-              verticalOffset: 100.0,
-              child: FadeInAnimation(
-                child: Card(
-                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                  child:
-                      getArticleCard(filteredList[index], textColor, context),
-                ),
-              ),
-            ),
-          );
+          return buildAnimationConfiguration(
+              filteredList, index, textColor, context);
         },
-        separatorBuilder: (BuildContext context, int index) => Divider());
+        staggeredTileBuilder: (int index) => new StaggeredTile.fit(1),
+        mainAxisSpacing: 4.0,
+        crossAxisSpacing: 4.0,
+      );
+    } else {
+      final numberOfArticles = filteredList.length;
+      final articlesDates = getDistinctDates(filteredList).toList();
+
+      return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 10),
+          itemCount: numberOfArticles,
+          itemBuilder: (BuildContext context, int index) {
+            var textColor =
+                filteredList[index].read ? Colors.white30 : Colors.white;
+            if (index == 0) {
+              return getSeparator(articlesDates, filteredList, index, true);
+            }
+            return buildAnimationConfiguration(
+                filteredList, index, textColor, context);
+          },
+          separatorBuilder: (BuildContext context, int index) =>
+              getSeparator(articlesDates, filteredList, index, false));
+    }
+  }
+
+  // 12-13; 12-12; 12-10; dates
+  // 12-12; 12-10 articles
+  // while article date is different from date list increment date index
+  // when equal, increment index to get the next date
+  // if next article date == current date item
+  // then print date
+  // else sizedBox
+  // very slow implementation... hacky way because separator is always after item
+  Widget getSeparator(
+      List<DateTime> dates, List<Article> article, int index, bool first) {
+    var dateIndex = 0;
+
+    while (getFormattedDate(article[index].date) !=
+        getFormattedDate(dates[dateIndex])) {
+      dateIndex++;
+    }
+    if (!first) dateIndex++;
+
+    final dateEquals = dates.isNotEmpty &&
+        getFormattedDate(article[index + 1].date) ==
+            getFormattedDate(dates[dateIndex]);
+    if (dateEquals) {
+      var text =
+          DateFormat('EEE, MMM d, yyyy', 'en_US').format(dates[dateIndex]);
+      if (getFormattedDate(DateTime.now()) ==
+          getFormattedDate(article[index + 1].date)) {
+        text = 'Today';
+      } else if (getFormattedDate(
+              DateTime.now().subtract(Duration(hours: 24))) ==
+          getFormattedDate(article[index + 1].date)) {
+        text = 'Yesterday';
+      }
+      return Container(
+          padding: EdgeInsets.only(top: 20, bottom: 10),
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 15, color: Colors.white70),
+          ));
+    } else {
+      return SizedBox(height: 5);
+    }
+  }
+
+  String getFormattedDate(DateTime date) {
+    return DateFormat('YYYY-MM-DD').format(date);
+  }
+
+  ListQueue<DateTime> getDistinctDates(List<Article> articles) {
+    Set<String> seen = Set();
+    ListQueue<DateTime> result = ListQueue();
+    articles.forEach((element) {
+      final date = element.date.toString().substring(0, 10);
+      if (!seen.contains(date)) {
+        seen.add(date);
+        result.add(DateTime(
+          element.date.year,
+          element.date.month,
+          element.date.day,
+        ));
+      }
+    });
+    return result;
+  }
+
+  AnimationConfiguration buildAnimationConfiguration(List<Article> articleList,
+      int index, Color textColor, BuildContext context) {
+    return AnimationConfiguration.synchronized(
+      duration: const Duration(milliseconds: 500),
+      child: SlideAnimation(
+        verticalOffset: 100.0,
+        child: FadeInAnimation(
+            child: Card(
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                child: getArticleCard(articleList[index], textColor, context))),
+      ),
+    );
   }
 
   Widget getArticleCard(
@@ -249,19 +358,22 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                 RepositoryServiceArticle.updateArticleReadStatus(currentArticle)
                     .then((_) => {setState(() => {})});
               },
-              child: Stack(
-                children: <Widget>[
-                  Center(
-                      child: Placeholder(
-                    fallbackHeight: 150,
-                    color: Colors.black12,
-                    strokeWidth: 0,
-                  )),
-                  Center(
-                      child: FadeInImage.memoryNetwork(
-                          placeholder: kTransparentImage,
-                          image: currentArticle.imageUrl)),
-                ],
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 450),
+                child: Stack(
+                  children: <Widget>[
+                    Center(
+                        child: Placeholder(
+                      fallbackHeight: 150,
+                      color: Colors.black12,
+                      strokeWidth: 0,
+                    )),
+                    Center(
+                        child: FadeInImage.memoryNetwork(
+                            placeholder: kTransparentImage,
+                            image: currentArticle.imageUrl)),
+                  ],
+                ),
               )),
           SizedBox(height: 0),
           buildListTile(currentArticle, textColor, context)
@@ -272,52 +384,31 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     return buildListTile(currentArticle, textColor, context);
   }
 
-  ListTile buildListTile(
-      Article article, Color textColor, BuildContext context) {
-    return ListTile(
-        leading: CircleAvatar(
-          radius: 20,
-          backgroundImage: getLogoForSource(article),
-          backgroundColor: Colors.transparent,
-        ),
-        title: AutoSizeText(
-          article.title,
-          style: TextStyle(color: textColor, fontSize: 15.0),
-          maxLines: 2,
-          minFontSize: 15,
-          overflow: TextOverflow.ellipsis,
-        ),
-        contentPadding: EdgeInsets.all(12),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-          child: buildSubtitleRichText(article),
-        ),
-        trailing: getArticlePopupMenuButton(article),
-        onTap: () {
-          _launchURL(article.url);
-          article.read = true;
-          RepositoryServiceArticle.updateArticleReadStatus(article)
-              .then((_) => setState(() {}));
-        });
-  }
-
-  AssetImage getLogoForSource(Article article) {
-    final basePath = 'assets/images/';
-    if (article.source == 'Facebook') {
-      return AssetImage('${basePath}facebook_logo.png');
-    } else if (article.source == 'Uber') {
-      return AssetImage('${basePath}uber_logo.jpg');
-    } else if (article.source == 'Netflix') {
-      return AssetImage('${basePath}netflix_logo.jpg');
-    } else if (article.source == 'HackerNews') {
-      return AssetImage('${basePath}hackernews_logo.png');
-    } else if (article.source == 'Dev.to') {
-      return AssetImage('${basePath}dev-to_logo.png');
-    } else if (article.source == 'High scalability') {
-      return AssetImage('${basePath}high-scalability_logo.png');
-    } else {
-      return AssetImage('${basePath}androidpolice_logo.png');
-    }
+  Widget buildListTile(Article article, Color textColor, BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 500),
+      child: ListTile(
+          leading: getLogoForSource(article),
+          title: AutoSizeText(
+            article.title,
+            style: TextStyle(color: textColor, fontSize: 15.0),
+            maxLines: 2,
+            minFontSize: 15,
+            overflow: TextOverflow.ellipsis,
+          ),
+          contentPadding: EdgeInsets.all(12),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+            child: buildSubtitleRichText(article),
+          ),
+          trailing: getArticlePopupMenuButton(article),
+          onTap: () {
+            _launchURL(article.url);
+            article.read = true;
+            RepositoryServiceArticle.updateArticleReadStatus(article)
+                .then((_) => setState(() {}));
+          }),
+    );
   }
 
   SpeedDial buildSpeedDial() {
@@ -384,7 +475,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     final color = article.read ? Colors.white30 : Colors.white70;
     return RichText(
         text: TextSpan(
-      text: article.date.toString().substring(0, 10),
+      text: article.sourceTitle,
       style: TextStyle(color: color, fontSize: 12.0),
       children: <TextSpan>[
         TextSpan(

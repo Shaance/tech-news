@@ -10,11 +10,18 @@ class DatabaseCreator {
   static const id = 'url';
   static const title = 'title';
   static const imageUrl = 'imageUrl';
-  static const source = 'source';
+  static const sourceKey = 'source';
+  static const a_sourceTitle = 'sourceTitle';
   static const author = 'author';
   static const date = 'date';
   static const read = 'read';
   static const saved = 'saved';
+
+  static const sourceTable = 'source';
+  static const sourceId = 'key';
+  static const sourceTitle = 'title';
+  static const sourceFeedUrl = 'feedUrl';
+  static const sourceUrl = 'url';
 
   static void databaseLog(String functionName, String sql,
       [List<Map<String, dynamic>> selectQueryResult, int insertAndUpdateQueryResult, List<dynamic> params]) {
@@ -31,19 +38,32 @@ class DatabaseCreator {
   }
 
   static Future<void> createArticleTable(Database db) async {
-    final todoSql = '''CREATE TABLE $articleTable
+    final articleSql = '''CREATE TABLE $articleTable
     (
       $id TEXT PRIMARY KEY,
       $imageUrl TEXT,
       $author TEXT,
       $date TEXT,
       $title TEXT,
-      $source TEXT,
+      $sourceKey TEXT,
+      $a_sourceTitle TEXT,
       $read BIT NOT NULL,
       $saved BIT NOT NULL
     )''';
 
-    await db.execute(todoSql);
+    await db.execute(articleSql);
+  }
+
+  static Future<void> createSourceTable(Database db) async {
+    final sourceSql = '''CREATE TABLE $sourceTable
+    (
+      $sourceId TEXT PRIMARY KEY,
+      $sourceTitle TEXT,
+      $sourceFeedUrl TEXT,
+      $sourceUrl TEXT
+    )''';
+
+    await db.execute(sourceSql);
   }
 
   static Future<String> getDatabasePath(String dbName) async {
@@ -52,7 +72,7 @@ class DatabaseCreator {
 
     //make sure the folder exists
     if (await Directory(dirname(path)).exists()) {
-//      await deleteDatabase(path);
+      await deleteDatabase(path);
     } else {
       await Directory(dirname(path)).create(recursive: true);
     }
@@ -61,11 +81,12 @@ class DatabaseCreator {
 
   static Future<void> initDatabase() async {
     final path = await getDatabasePath('article_db');
-    db = await openDatabase(path, version: 1, onCreate: onCreate);
+    db = await openDatabase(path, version: 2, onCreate: onCreate);
     print(db);
   }
 
   static Future<void> onCreate(Database db, int version) async {
     await createArticleTable(db);
+    await createSourceTable(db);
   }
 }

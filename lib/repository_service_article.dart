@@ -1,6 +1,5 @@
 import 'package:technewsaggregator/shared_preferences_helper.dart';
 
-import 'api_helper.dart';
 import 'article.dart';
 import 'database_creator.dart';
 
@@ -13,8 +12,7 @@ class RepositoryServiceArticle {
       List<Article> articles = List();
       for (final node in data) {
         final article = Article.fromJson(node);
-        final sourceKey = articleSourceToApiSourceKey(article.source);
-        if (await SharedPreferencesHelper.isSourceEnabled(sourceKey)) {
+        if (await SharedPreferencesHelper.isSourceEnabled(article.sourceKey)) {
           articles.add(article);
         }
       }
@@ -33,16 +31,16 @@ class RepositoryServiceArticle {
       ${DatabaseCreator.author},
       ${DatabaseCreator.date},
       ${DatabaseCreator.title},
-      ${DatabaseCreator.source},
+      ${DatabaseCreator.sourceKey},
+      ${DatabaseCreator.a_sourceTitle},
       ${DatabaseCreator.read},
       ${DatabaseCreator.saved}
     )
-    VALUES (?,?,?,?,?,?,?,?)''';
+    VALUES (?,?,?,?,?,?,?,?, ?)''';
     List<dynamic> params = [article.url, article.imageUrl, article.author,
-      article.date.toIso8601String(), article.title, article.source,
-      article.read ? 1 : 0, article.saved ? 1 : 0];
-    final result = await db.rawInsert(sql, params);
-//    DatabaseCreator.databaseLog('Add article', sql, null, result, params);
+      article.date.toIso8601String(), article.title, article.sourceKey,
+      article.sourceTitle, article.read ? 1 : 0, article.saved ? 1 : 0];
+    await db.rawInsert(sql, params);
   }
 
   static Future<void> updateArticleReadStatus(Article article) async {
@@ -53,9 +51,7 @@ class RepositoryServiceArticle {
     ''';
 
     List<dynamic> params = [article.read ? 1 : 0, article.url];
-    final result = await db.rawUpdate(sql, params);
-
-//    DatabaseCreator.databaseLog('Update article', sql, null, result, params);
+    await db.rawUpdate(sql, params);
   }
 
   static Future<void> updateArticleSavedStatus(Article article) async {
@@ -66,17 +62,15 @@ class RepositoryServiceArticle {
     ''';
 
     List<dynamic> params = [article.saved ? 1 : 0, article.url];
-    final result = await db.rawUpdate(sql, params);
+    await db.rawUpdate(sql, params);
 
-//    DatabaseCreator.databaseLog('Update article', sql, null, result, params);
   }
 
   static Future<void> deleteAllArticle() async {
 
     final sql = '''DELETE * FROM ${DatabaseCreator.articleTable}''';
 
-    final result = await db.rawUpdate(sql);
-//    DatabaseCreator.databaseLog('Delete all', sql, null, result);
+    await db.rawUpdate(sql);
   }
 
   static Future<int> countAll() async {

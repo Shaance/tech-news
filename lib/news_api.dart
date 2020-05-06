@@ -102,13 +102,13 @@ Future articleApiCall(
   });
 }
 
-Future<List<Article>> fetchArticles(
-    String baseUrl, List<Article> oldArticles) async {
+Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
+  List<Article> result = List<Article>();
+  List<Source> sources = List<Source>();
   try {
-    var sources = await fetchRssSources(baseUrl);
+    sources = await fetchRssSources(baseUrl);
     if (sources.length > 0) {
       var futures = <Future>[];
-      List<Article> result = new List();
       Set<String> seen = oldArticles != null
           ? oldArticles.map((a) => a.url).toSet()
           : new Set();
@@ -137,15 +137,22 @@ Future<List<Article>> fetchArticles(
       }
       result.forEach((article) => RepositoryServiceArticle.addArticle(article));
       result.addAll(oldArticles);
-      if (await SharedPreferencesHelper.isGroupBySourceEnabled()) {
-        return await groupBySource(result);
-      } else {
-        return await limitBySource(result);
-      }
+      return await limitBySource(result);
     }
   } catch (err) {
     print(err);
-    showBottomToast('An error occured during article fetch!', 2);
+//    showBottomToast('An error occured during article fetch!', 2);
+    if (result.isEmpty) {
+      showBottomToast(
+          'No new articles from ${sources.map((s) => s.title).join(", ")}',
+          3);
+    } else {
+      showBottomToast(
+          'Fetched ${result.length} articles from ${sources.map((s) => s.title).join(", ")}',
+          3);
+    }
+    result.forEach((article) => RepositoryServiceArticle.addArticle(article));
+    result.addAll(oldArticles);
   }
 
   return Future.value(oldArticles);

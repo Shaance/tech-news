@@ -14,7 +14,6 @@ class SharedPreferencesScreen extends StatelessWidget {
           _getSourcesSettingsTile(),
           _getNumberOfArticlesSettingsTile(),
           _getSourcesCategoriesSettingsTile(),
-          _getGroupBySourceSettingsTile(),
           _openInWebViewSettingsTile(),
           _getJSEnableSettingsTile(),
         ]),
@@ -40,16 +39,6 @@ RadioPickerSettingsTile _getNumberOfArticlesSettingsTile() {
       '100': '100 articles',
       '125': '125 articles',
     },
-  );
-}
-
-CheckboxSettingsTile _getGroupBySourceSettingsTile() {
-  return CheckboxSettingsTile(
-    settingKey: SharedPreferencesHelper.kGroupBySourceKey,
-    defaultValue: SharedPreferencesHelper.kDefaultGroupBySource,
-    title: 'Group articles by source',
-    subtitle: 'Articles will be grouped by source',
-    subtitleIfOff: 'Display the latest articles',
   );
 }
 

@@ -8,7 +8,6 @@ class SharedPreferencesHelper {
   static final String kJSEnabledKey = "JS_ENABLED";
   static final String kDevToCategoryKey = "${kDevToKey}_category";
   static final String kHackernewsCategoryKey = "${kHackernewsKey}_category";
-  static final String kGroupBySourceKey = "GROUP_BY_SOURCE";
   static final String kOpenInWebViewKey = "URL_WEBVIEW";
 
   static final String kDevToKey = "dev-to";
@@ -21,7 +20,6 @@ class SharedPreferencesHelper {
 
   static final String kDefaultNumberOfArticles = '50';
   static final bool kDefaultSourceFetch = false;
-  static final bool kDefaultGroupBySource = false;
   static final bool kDefaultOpenInWebView = false;
   static final List<String> kDefaultArticleSourcesToFetch = [
     kUberKey,
@@ -62,11 +60,6 @@ class SharedPreferencesHelper {
   static Future<bool> isJSEnabled() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kJSEnabledKey) ?? kDefaultJSEnabled;
-  }
-
-  static Future<bool> isGroupBySourceEnabled() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(kGroupBySourceKey) ?? kDefaultGroupBySource;
   }
 
   static Future<bool> isSourceEnabled(String key) async {

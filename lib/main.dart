@@ -240,7 +240,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           var textColor =
               filteredList[index].read ? Colors.white30 : Colors.white;
           return buildAnimationConfiguration(
-              filteredList, index, textColor, context);
+              filteredList, index, textColor, context, false);
         },
         staggeredTileBuilder: (int index) => new StaggeredTile.fit(1),
         mainAxisSpacing: 4.0,
@@ -260,7 +260,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               return getSeparator(articlesDates, filteredList, index, true);
             }
             return buildAnimationConfiguration(
-                filteredList, index, textColor, context);
+                filteredList, index, textColor, context, true);
           },
           separatorBuilder: (BuildContext context, int index) =>
               getSeparator(articlesDates, filteredList, index, false));
@@ -311,7 +311,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   String getFormattedDate(DateTime date) {
-    return DateFormat('YYYY-MM-DD').format(date);
+    return date.toString().substring(0, 10);
   }
 
   ListQueue<DateTime> getDistinctDates(List<Article> articles) {
@@ -332,7 +332,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   }
 
   AnimationConfiguration buildAnimationConfiguration(List<Article> articleList,
-      int index, Color textColor, BuildContext context) {
+      int index, Color textColor, BuildContext context, bool listView) {
     return AnimationConfiguration.synchronized(
       duration: const Duration(milliseconds: 500),
       child: SlideAnimation(
@@ -340,13 +340,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         child: FadeInAnimation(
             child: Card(
                 clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: getArticleCard(articleList[index], textColor, context))),
+                child: getArticleCard(articleList[index], textColor, context, listView))),
       ),
     );
   }
 
   Widget getArticleCard(
-      Article currentArticle, Color textColor, BuildContext context) {
+      Article currentArticle, Color textColor, BuildContext context, bool listView) {
     if (currentArticle.imageUrl != null) {
       return Column(
         children: <Widget>[
@@ -376,15 +376,15 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                 ),
               )),
           SizedBox(height: 0),
-          buildListTile(currentArticle, textColor, context)
+          buildListTile(currentArticle, textColor, context, listView)
         ],
       );
     }
 
-    return buildListTile(currentArticle, textColor, context);
+    return buildListTile(currentArticle, textColor, context, listView);
   }
 
-  Widget buildListTile(Article article, Color textColor, BuildContext context) {
+  Widget buildListTile(Article article, Color textColor, BuildContext context, bool listView) {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 500),
       child: ListTile(
@@ -399,7 +399,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           contentPadding: EdgeInsets.all(12),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-            child: buildSubtitleRichText(article),
+            child: buildSubtitleRichText(article, listView),
           ),
           trailing: getArticlePopupMenuButton(article),
           onTap: () {
@@ -469,13 +469,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
-  RichText buildSubtitleRichText(Article article) {
+  RichText buildSubtitleRichText(Article article, bool listView) {
     final readSuffix = article.read ? ' · read' : '';
     final savedSuffix = article.saved ? ' · saved' : '';
     final color = article.read ? Colors.white30 : Colors.white70;
     return RichText(
         text: TextSpan(
-      text: article.sourceTitle,
+      text: listView ? article.sourceTitle : getFormattedDate(article.date) + ' | ' + article.sourceTitle ,
       style: TextStyle(color: color, fontSize: 12.0),
       children: <TextSpan>[
         TextSpan(

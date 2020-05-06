@@ -65,9 +65,9 @@ Future<List<Source>> fetchArchiveSources(String baseUrl) async {
 
 Future<List<Source>> fetchSources(String sourceApiUrl) async {
   final sourcesResponse = await http.get(sourceApiUrl);
+  final oldSources = await RepositoryServiceSource.getAllSources();
   if (sourcesResponse.statusCode == 200) {
     var jsonSources = json.decode(sourcesResponse.body) as List;
-    final oldSources = await RepositoryServiceSource.getAllSources();
     final sources =
         jsonSources.map((source) => Source.fromJson(source)).toList();
     final seen = oldSources.map((source) => source.key).toSet();
@@ -82,7 +82,7 @@ Future<List<Source>> fetchSources(String sourceApiUrl) async {
     newSources.forEach((element) => RepositoryServiceSource.addSource(element));
     return filteredSources;
   }
-  return Future.value([]);
+  return Future.value(oldSources);
 }
 
 Future articleApiCall(
@@ -101,8 +101,7 @@ Future articleApiCall(
   });
 }
 
-Future<List<Article>> fetchArticles(
-    String baseUrl, List<Article> oldArticles) async {
+Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
   try {
     var sources = await fetchRssSources(baseUrl);
     if (sources.length > 0) {

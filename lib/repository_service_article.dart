@@ -4,7 +4,6 @@ import 'article.dart';
 import 'database_creator.dart';
 
 class RepositoryServiceArticle {
-
   static Future<List<Article>> getAllArticles() async {
     final sql = '''SELECT * FROM ${DatabaseCreator.articleTable}''';
     final data = await db.rawQuery(sql);
@@ -37,14 +36,21 @@ class RepositoryServiceArticle {
       ${DatabaseCreator.saved}
     )
     VALUES (?,?,?,?,?,?,?,?, ?)''';
-    List<dynamic> params = [article.url, article.imageUrl, article.author,
-      article.date.toIso8601String(), article.title, article.sourceKey,
-      article.sourceTitle, article.read ? 1 : 0, article.saved ? 1 : 0];
+    List<dynamic> params = [
+      article.url,
+      article.imageUrl,
+      article.author,
+      article.date.toIso8601String(),
+      article.title,
+      article.sourceKey,
+      article.sourceTitle,
+      article.read ? 1 : 0,
+      article.saved ? 1 : 0
+    ];
     await db.rawInsert(sql, params);
   }
 
   static Future<void> updateArticleReadStatus(Article article) async {
-
     final sql = '''UPDATE ${DatabaseCreator.articleTable}
     SET ${DatabaseCreator.read} = ?
     WHERE ${DatabaseCreator.id} = ?
@@ -55,7 +61,6 @@ class RepositoryServiceArticle {
   }
 
   static Future<void> updateArticleSavedStatus(Article article) async {
-
     final sql = '''UPDATE ${DatabaseCreator.articleTable}
     SET ${DatabaseCreator.saved} = ?
     WHERE ${DatabaseCreator.id} = ?
@@ -63,21 +68,19 @@ class RepositoryServiceArticle {
 
     List<dynamic> params = [article.saved ? 1 : 0, article.url];
     await db.rawUpdate(sql, params);
-
   }
 
   static Future<void> deleteAllArticle() async {
-
     final sql = '''DELETE * FROM ${DatabaseCreator.articleTable}''';
 
     await db.rawUpdate(sql);
   }
 
   static Future<int> countAll() async {
-    final data = await db.rawQuery('''SELECT COUNT(*) FROM ${DatabaseCreator.articleTable}''');
+    final data = await db
+        .rawQuery('''SELECT COUNT(*) FROM ${DatabaseCreator.articleTable}''');
     int count = data[0].values.elementAt(0);
     int idForNewItem = count++;
     return idForNewItem;
   }
-
 }

@@ -24,7 +24,10 @@ class DatabaseCreator {
   static const sourceUrl = 'url';
 
   static void databaseLog(String functionName, String sql,
-      [List<Map<String, dynamic>> selectQueryResult, int insertAndUpdateQueryResult, List<dynamic> params]) {
+      [List<Map<String, dynamic>> selectQueryResult,
+      int insertAndUpdateQueryResult,
+      List<dynamic> params]) {
+
     print(functionName);
     print(sql);
     if (params != null) {

@@ -13,7 +13,6 @@ class SourceSelectionSettings extends StatefulWidget {
 }
 
 class SourceSelectionSettingsState extends State<SourceSelectionSettings> {
-
   final TextEditingController _filter = new TextEditingController();
   Future<List<Widget>> _sourceList;
   bool _filteredState;
@@ -42,8 +41,8 @@ class SourceSelectionSettingsState extends State<SourceSelectionSettings> {
     return Scaffold(
         appBar: AppBar(
           title: AnimatedSwitcher(
-              duration: Duration(milliseconds: 250),
-              child: _appTitle,
+            duration: Duration(milliseconds: 250),
+            child: _appTitle,
           ),
           centerTitle: true,
           automaticallyImplyLeading: false,
@@ -57,20 +56,18 @@ class SourceSelectionSettingsState extends State<SourceSelectionSettings> {
                 child: GestureDetector(
                   onTap: () {
                     _filteredState = !_filteredState;
-                    _appTitle = Text(getTitleString(), key: ValueKey(getTitleString()));
+                    _appTitle =
+                        Text(getTitleString(), key: ValueKey(getTitleString()));
                     if (_searchIcon.icon == Icons.close) {
                       _searchIcon = Icon(Icons.search);
                     }
                     _sourceList = getCheckboxSettingsTileList().then((value) {
-                        setState(() {});
-                        return value;
+                      setState(() {});
+                      return value;
                     });
                   },
-                  child: Icon(
-                      Icons.filter_list
-                  ),
-                )
-            ),
+                  child: Icon(Icons.filter_list),
+                )),
           ],
         ),
         body: getFutureBuilder());
@@ -106,8 +103,8 @@ class SourceSelectionSettingsState extends State<SourceSelectionSettings> {
         this._appTitle = TextField(
           controller: _filter,
           decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search...',
+            prefixIcon: Icon(Icons.search),
+            hintText: 'Search...',
           ),
         );
       } else {
@@ -122,21 +119,22 @@ class SourceSelectionSettingsState extends State<SourceSelectionSettings> {
     });
   }
 
-
   Future<List<Widget>> getCheckboxSettingsTileList() async {
     var sources = await RepositoryServiceSource.getAllSources();
 
     if (_searchText.isNotEmpty) {
-      sources = sources.where((element)
-        => element.title.toLowerCase().contains(_searchText.toLowerCase())
-      ).toList();
+      sources = sources
+          .where((element) =>
+              element.title.toLowerCase().contains(_searchText.toLowerCase()))
+          .toList();
     }
 
     var filteredSources = List<Source>();
 
     if (_filteredState) {
       for (Source source in sources) {
-        final enabled = await SharedPreferencesHelper.isSourceEnabled(source.key);
+        final enabled =
+            await SharedPreferencesHelper.isSourceEnabled(source.key);
         if (enabled) {
           filteredSources.add(source);
         }
@@ -152,24 +150,26 @@ class SourceSelectionSettingsState extends State<SourceSelectionSettings> {
         children: <Widget>[
           GestureDetector(
             onTap: () async {
-              final SharedPreferences prefs = await SharedPreferences.getInstance();
-              final enabled = await SharedPreferencesHelper.isSourceEnabled(source.key);
+              final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+              final enabled =
+                  await SharedPreferencesHelper.isSourceEnabled(source.key);
               await prefs.setBool(source.key, !enabled);
-              _sourceList = getCheckboxSettingsTileList()
-                .then((value) {
-                  setState(() {});
-                  return value;
-                });
+              _sourceList = getCheckboxSettingsTileList().then((value) {
+                setState(() {});
+                return value;
+              });
             },
             child: ListTile(
               title: Text(source.title),
               trailing: Checkbox(
-                value: await SharedPreferencesHelper.isSourceEnabled(source.key),
+                value:
+                    await SharedPreferencesHelper.isSourceEnabled(source.key),
                 onChanged: (bool value) async {
-                  final SharedPreferences prefs = await SharedPreferences.getInstance();
+                  final SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
                   await prefs.setBool(source.key, value);
-                  _sourceList = getCheckboxSettingsTileList()
-                      .then((value) {
+                  _sourceList = getCheckboxSettingsTileList().then((value) {
                     setState(() {});
                     return value;
                   });

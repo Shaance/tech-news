@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import "package:collection/collection.dart";
 import 'package:http/http.dart' as http;
 import 'package:technewsaggregator/repository_service_article.dart';
@@ -101,7 +102,8 @@ Future articleApiCall(
   });
 }
 
-Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
+Future<List<Article>> fetchArticles(
+    String baseUrl, List<Article> oldArticles) async {
   try {
     var sources = await fetchRssSources(baseUrl);
     if (sources.length > 0) {

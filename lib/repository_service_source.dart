@@ -1,12 +1,8 @@
-import 'package:technewsaggregator/shared_preferences_helper.dart';
 import 'package:technewsaggregator/source.dart';
 
-import 'api_helper.dart';
-import 'article.dart';
 import 'database_creator.dart';
 
 class RepositoryServiceSource {
-
   static Future<List<Source>> getAllSources() async {
     final sql = '''SELECT * FROM ${DatabaseCreator.sourceTable}''';
     final data = await db.rawQuery(sql);
@@ -31,7 +27,10 @@ class RepositoryServiceSource {
     )
     VALUES (?,?,?,?)''';
     List<dynamic> params = [
-      source.key, source.title, source.feedUrl, source.url
+      source.key,
+      source.title,
+      source.feedUrl,
+      source.url
     ];
 
     await db.rawInsert(sql, params);
@@ -54,17 +53,16 @@ class RepositoryServiceSource {
   }
 
   static Future<void> deleteAllArticle() async {
-
     final sql = '''DELETE * FROM ${DatabaseCreator.sourceTable}''';
 
     await db.rawUpdate(sql);
   }
 
   static Future<int> countAll() async {
-    final data = await db.rawQuery('''SELECT COUNT(*) FROM ${DatabaseCreator.sourceTable}''');
+    final data = await db
+        .rawQuery('''SELECT COUNT(*) FROM ${DatabaseCreator.sourceTable}''');
     int count = data[0].values.elementAt(0);
     int idForNewItem = count++;
     return idForNewItem;
   }
-
 }

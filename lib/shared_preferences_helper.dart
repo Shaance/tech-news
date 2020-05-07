@@ -8,7 +8,6 @@ class SharedPreferencesHelper {
   static final String kJSEnabledKey = "JS_ENABLED";
   static final String kDevToCategoryKey = "${kDevToKey}_category";
   static final String kHackernewsCategoryKey = "${kHackernewsKey}_category";
-  static final String kGroupBySourceKey = "GROUP_BY_SOURCE";
   static final String kOpenInWebViewKey = "URL_WEBVIEW";
 
   static final String kDevToKey = "dev-to";
@@ -20,15 +19,12 @@ class SharedPreferencesHelper {
   static final String kHighScalabilityKey = "highscalability";
 
   static final String kDefaultNumberOfArticles = '50';
-  static final bool kDefaultSourceFetch = true;
-  static final bool kDefaultGroupBySource = false;
+  static final bool kDefaultSourceFetch = false;
   static final bool kDefaultOpenInWebView = false;
   static final List<String> kDefaultArticleSourcesToFetch = [
-    kDevToKey,
     kUberKey,
     kNetflixKey,
     kAndroidPoliceKey,
-    kHackernewsKey,
     kFacebookKey,
     kHighScalabilityKey
   ];
@@ -36,6 +32,15 @@ class SharedPreferencesHelper {
   static final bool kDefaultJSEnabled = true;
   static final String kDefaultDevToCategory = ''; // landing page
   static final String kDefaultHackernewsCategory = 'best';
+
+  static Future<void> initDefaultSources() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    kDefaultArticleSourcesToFetch.forEach((source) {
+      if (prefs.getBool(source) == null) {
+        prefs.setBool(source, true);
+      }
+    });
+  }
 
   static Future<String> getNumberOfArticles() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -57,16 +62,8 @@ class SharedPreferencesHelper {
     return prefs.getBool(kJSEnabledKey) ?? kDefaultJSEnabled;
   }
 
-  static Future<bool> isGroupBySourceEnabled() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(kGroupBySourceKey) ?? kDefaultGroupBySource;
-  }
-
   static Future<bool> isSourceEnabled(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (!kDefaultArticleSourcesToFetch.contains(key)) {
-      return false;
-    }
     return prefs.getBool(key) ?? kDefaultSourceFetch;
   }
 

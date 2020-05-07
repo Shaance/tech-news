@@ -5,7 +5,8 @@ class Article {
   final String imageUrl;
   final String title;
   final String author;
-  final String source;
+  final String sourceKey;
+  final String sourceTitle;
   final DateTime date;
   bool read;
   bool saved;
@@ -16,7 +17,8 @@ class Article {
       this.title,
       this.author,
       this.date,
-      this.source,
+      this.sourceKey,
+      this.sourceTitle,
       this.read,
       this.saved});
 
@@ -27,13 +29,16 @@ class Article {
         author: json[DatabaseCreator.author],
         date: DateTime.parse(json[DatabaseCreator.date]),
         title: json[DatabaseCreator.title],
-        source: json[DatabaseCreator.source],
-        read: json[DatabaseCreator.read]  == 1,
+        sourceKey: json[DatabaseCreator.sourceKey],
+        sourceTitle: json[DatabaseCreator.a_sourceTitle],
+        read: json[DatabaseCreator.read] == 1,
         saved: json[DatabaseCreator.saved] == 1);
   }
 
   @override
   String toString() {
-    return 'Article{url: $url, imageUrl: $imageUrl, title: $title, author: $author, source: $source, date: $date, read: $read, saved: $saved}';
+    return 'Article{url: $url, imageUrl: $imageUrl, title: $title, '
+        'author: $author, sourceKey: $sourceKey, sourceTitle: $sourceTitle, '
+        'date: $date, read: $read, saved: $saved}';
   }
 }

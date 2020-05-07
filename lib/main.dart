@@ -95,7 +95,6 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
   @override
   Widget build(BuildContext context) {
     var data = buildDataFutureBuilder();
-
     return Scaffold(
       appBar: getAppBar(),
       body: RefreshIndicator(
@@ -257,7 +256,17 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
             var textColor =
                 filteredList[index].read ? Colors.white30 : Colors.white;
             if (index == 0) {
-              return getSeparator(articlesDates, filteredList, index, true);
+              return Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      getSeparator(articlesDates, filteredList, index, true),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  buildAnimationConfiguration(filteredList, index, textColor, context, true)
+                ],
+              );
             }
             return buildAnimationConfiguration(
                 filteredList, index, textColor, context, true);
@@ -283,11 +292,22 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         getFormattedDate(dates[dateIndex])) {
       dateIndex++;
     }
-    if (!first) dateIndex++;
 
-    final dateEquals = dates.isNotEmpty &&
+    if (!first) {
+      dateIndex++;
+      if (dates.length == 1) {
+        return SizedBox(height: 5);
+      }
+    }
+
+    if (article.length == 1) {
+      index = -1;
+    }
+
+    var dateEquals = dates.isNotEmpty &&
         getFormattedDate(article[index + 1].date) ==
             getFormattedDate(dates[dateIndex]);
+
     if (dateEquals) {
       var text =
           DateFormat('EEE, MMM d, yyyy', 'en_US').format(dates[dateIndex]);

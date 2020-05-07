@@ -47,18 +47,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OKToast(
         child: MaterialApp(
-      home: TechArticlesWidget(config: config),
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Color.fromRGBO(61, 61, 92, 1),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Color.fromRGBO(61, 61, 92, 1),
-      ),
-    ));
-  }
+          home: TechArticlesWidget(config: config),
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Color.fromRGBO(61, 61, 92, 1),
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Color.fromRGBO(61, 61, 92, 1),
+          ),
+        ));
+      }
 }
 
 class TechArticlesWidget extends StatefulWidget {
@@ -101,17 +101,19 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         color: Colors.black,
         backgroundColor: Colors.grey,
         key: globalKey,
-        onRefresh: () async {
-          final oldArticles = await RepositoryServiceArticle.getAllArticles();
-          var refreshArticles = fetchArticles(config.apiUrl, oldArticles);
-          setState(() {
-            articles = refreshArticles;
-          });
-        },
+        onRefresh: refreshArticles,
         child: data,
       ),
       floatingActionButton: buildSpeedDial(),
     );
+  }
+
+  Future refreshArticles() async {
+    final oldArticles = await RepositoryServiceArticle.getAllArticles();
+    var refreshArticles = fetchArticles(config.apiUrl, oldArticles);
+    setState(() {
+      articles = refreshArticles;
+    });
   }
 
   AppBar getAppBar() {
@@ -443,14 +445,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
             labelBackgroundColor: Colors.black54,
             label: 'Refresh article list',
             backgroundColor: customGrey,
-            onTap: () async {
-              final oldArticles =
-                  await RepositoryServiceArticle.getAllArticles();
-              var refreshArticles = fetchArticles(config.apiUrl, oldArticles);
-              setState(() {
-                articles = refreshArticles;
-              });
-            }),
+            onTap: refreshArticles
+        ),
         SpeedDialChild(
             child: Icon(
                 _hideReadArticles ? Icons.visibility : Icons.visibility_off),

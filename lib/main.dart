@@ -252,6 +252,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 10),
           itemCount: numberOfArticles,
+          key: const PageStorageKey<String>('someKey'),
           itemBuilder: (BuildContext context, int index) {
             var textColor =
                 filteredList[index].read ? Colors.white30 : Colors.white;

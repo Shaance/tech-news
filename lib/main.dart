@@ -144,26 +144,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
                 child: buildArticleListView(filteredList),
                 key: ValueKey(_articleListKey));
           } else {
-            RepositoryServiceArticle.countAll().then((value) {
-              if (value == 0) {
-                if (first) {
-                  first = false;
-                  articles = fetchArticles(config.apiUrl, List()).then((value) {
-                    setState(() => {});
-                    return value;
-                  });
-                } else {
-                  if (firstError) {
-                    firstError = false;
-                    showSnackBar(
-                        Text(
-                            'Article fetch failed. Try again with better internet connection'),
-                        milliseconds: 2000);
-                  }
-                }
-              }
-            });
-
+            fetchArticlesOnFirstLaunch();
             return buildNoContentWidget();
           }
         } else if (snapshot.hasError) {
@@ -178,32 +159,55 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     );
   }
 
+  void fetchArticlesOnFirstLaunch() {
+    RepositoryServiceArticle.countAll().then((value) {
+      if (value == 0) {
+        if (first) {
+          first = false;
+          articles = fetchArticles(config.apiUrl, List()).then((value) {
+            setState(() => {});
+            return value;
+          });
+        } else {
+          if (firstError) {
+            firstError = false;
+            showSnackBar(
+                Text(
+                    'Article fetch failed. Try again with better internet connection'),
+                milliseconds: 2000);
+          }
+        }
+      }
+    });
+  }
+
   Center buildNoContentWidget() {
     return Center(
         child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Stack(
-          children: <Widget>[
-            Center(
-                child: Placeholder(
-              fallbackHeight: 230,
-              color: Colors.black12,
-              strokeWidth: 0,
-            )),
-            Center(
-                child: FadeInImage.memoryNetwork(
-                    placeholder: kTransparentImage,
-                    image:
-                        'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif')),
-          ],
-        ),
-        SizedBox(height: 20),
-        Text(
-          "Oops, nothing to see here yet .. 🧐?",
-          style: TextStyle(fontSize: 20),
-        )
-      ],
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Stack(
+            children: <Widget>[
+              Center(
+                  child: Placeholder(
+                fallbackHeight: 230,
+                color: Colors.black12,
+                strokeWidth: 0,
+              )),
+              Center(
+                  child: FadeInImage.memoryNetwork(
+                      placeholder: kTransparentImage,
+                      image: 'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif'
+                  )
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          Text(
+            "Oops, nothing to see here yet .. 🧐?",
+            style: TextStyle(fontSize: 20),
+          )
+        ],
     ));
   }
 
@@ -254,7 +258,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 10),
           itemCount: numberOfArticles,
-          key: const PageStorageKey<String>('someKey'),
+          key: const PageStorageKey<String>('someKey'), // remember position
           itemBuilder: (BuildContext context, int index) {
             var textColor =
                 filteredList[index].read ? Colors.white30 : Colors.white;
@@ -303,24 +307,25 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       }
     }
 
+    // without this would have to double check in every conditionals below
+    // for this specific case
     if (article.length == 1) {
       index = -1;
     }
 
     var dateEquals = dates.isNotEmpty &&
-        getFormattedDate(article[index + 1].date) ==
-            getFormattedDate(dates[dateIndex]);
+        getFormattedDate(article[index + 1].date) == getFormattedDate(dates[dateIndex]);
 
     if (dateEquals) {
-      var text =
-          DateFormat('EEE, MMM d, yyyy', 'en_US').format(dates[dateIndex]);
-      if (getFormattedDate(DateTime.now()) ==
-          getFormattedDate(article[index + 1].date)) {
+      var text = DateFormat('EEE, MMM d, yyyy', 'en_US').format(dates[dateIndex]);
+      final nextArticleDate = getFormattedDate(article[index + 1].date);
+      if (getFormattedDate(DateTime.now()) == nextArticleDate) {
         text = 'Today';
-      } else if (getFormattedDate(
-              DateTime.now().subtract(Duration(hours: 24))) ==
-          getFormattedDate(article[index + 1].date)) {
-        text = 'Yesterday';
+      } else {
+        final yesterday = getFormattedDate(DateTime.now().subtract(Duration(hours: 24)));
+        if (yesterday == nextArticleDate) {
+          text = 'Yesterday';
+        }
       }
       return Container(
           padding: EdgeInsets.only(top: 20, bottom: 10),
@@ -376,10 +381,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           SizedBox(height: 0),
           GestureDetector(
               onTap: () {
-                _launchURL(currentArticle.url);
-                currentArticle.read = true;
-                RepositoryServiceArticle.updateArticleReadStatus(currentArticle)
-                    .then((_) => {setState(() => {})});
+                // launch browser from image tapping
+                articleOnTap(currentArticle);
               },
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: 450),
@@ -407,6 +410,13 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
     return buildListTile(currentArticle, textColor, context, listView);
   }
 
+  void articleOnTap(Article currentArticle) {
+     _launchURL(currentArticle.url);
+    currentArticle.read = true;
+    RepositoryServiceArticle.updateArticleReadStatus(currentArticle)
+        .then((_) => {setState(() => {})});
+  }
+
   Widget buildListTile(Article article, Color textColor, BuildContext context, bool listView) {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 500),
@@ -426,10 +436,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
           ),
           trailing: getArticlePopupMenuButton(article),
           onTap: () {
-            _launchURL(article.url);
-            article.read = true;
-            RepositoryServiceArticle.updateArticleReadStatus(article)
-                .then((_) => setState(() {}));
+            articleOnTap(article);
           }),
     );
   }

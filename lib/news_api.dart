@@ -70,10 +70,10 @@ Future<List<Source>> fetchSources(String sourceApiUrl) async {
   if (sourcesResponse.statusCode == 200) {
     var jsonSources = json.decode(sourcesResponse.body) as List;
     final sources =
-        jsonSources.map((source) => Source.fromJson(source)).toList();
+    jsonSources.map((source) => Source.fromJson(source)).toList();
     final seen = oldSources.map((source) => source.key).toSet();
     final newSources =
-        sources.where((element) => !seen.contains(element.key)).toList();
+    sources.where((element) => !seen.contains(element.key)).toList();
     final filteredSources = new List<Source>();
     for (Source source in sources) {
       if (await SharedPreferencesHelper.isSourceEnabled(source.key)) {
@@ -106,6 +106,7 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
   List<Article> result = List<Article>();
   List<Source> sources = List<Source>();
   try {
+    showBottomToast('Fetching your articles', 3);
     sources = await fetchRssSources(baseUrl);
     if (sources.length > 0) {
       var futures = <Future>[];
@@ -113,9 +114,6 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
           ? oldArticles.map((a) => a.url).toSet()
           : new Set();
 
-      showBottomToast(
-          'Fetching articles from ${sources.map((s) => s.title).join(", ")}',
-          3);
       final articleNbQueryParam = await getArticleNumberQueryParam();
       for (Source source in sources) {
         final categoryQueryParam = await getCategoryQueryParam(source.key);
@@ -126,34 +124,34 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
             source.title));
       }
       await Future.wait(futures);
-      if (result.isEmpty) {
-        showBottomToast(
-            'No new articles from ${sources.map((s) => s.title).join(", ")}',
-            3);
-      } else {
-        showBottomToast(
-            'Fetched ${result.length} articles from ${sources.map((s) => s.title).join(", ")}',
-            3);
-      }
+      showResultToast(result, sources);
       result.forEach((article) => RepositoryServiceArticle.addArticle(article));
       result.addAll(oldArticles);
       return await limitBySource(result);
     }
   } catch (err) {
     print(err);
-//    showBottomToast('An error occured during article fetch!', 2);
-    if (result.isEmpty) {
-      showBottomToast(
-          'No new articles from ${sources.map((s) => s.title).join(", ")}',
-          3);
-    } else {
-      showBottomToast(
-          'Fetched ${result.length} articles from ${sources.map((s) => s.title).join(", ")}',
-          3);
-    }
+    showResultToast(result, sources);
     result.forEach((article) => RepositoryServiceArticle.addArticle(article));
     result.addAll(oldArticles);
   }
 
   return Future.value(oldArticles);
+}
+
+showResultToast(List<Article> result, List<Source> sources) {
+  if (result.isEmpty) {
+    showBottomToast(
+        'No new articles from ${sources.map((s) => s.title).join(", ")}',
+        3);
+  } else {
+    String baseMessage = 'Fetched ${result.length} articles';
+    if (sources.length > 10) {
+      showBottomToast(baseMessage, 3);
+    } else {
+      showBottomToast(
+          '$baseMessage from ${sources.map((s) => s.title).join(", ")}',
+          3);
+    }
+  }
 }

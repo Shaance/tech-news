@@ -8,7 +8,7 @@ class RepositoryServiceArticle {
     final sql = '''SELECT * FROM ${DatabaseCreator.articleTable}''';
     final data = await db.rawQuery(sql);
     if (data.length != 0) {
-      List<Article> articles = List();
+      List<Article> articles = [];
       for (final node in data) {
         final article = Article.fromJson(node);
         if (await SharedPreferencesHelper.isSourceEnabled(article.sourceKey)) {
@@ -23,7 +23,7 @@ class RepositoryServiceArticle {
   }
 
   static Future<void> addArticle(Article article) async {
-    final sql = '''INSERT INTO ${DatabaseCreator.articleTable}
+    final sql = '''INSERT OR REPLACE INTO ${DatabaseCreator.articleTable}
     (
       ${DatabaseCreator.id},
       ${DatabaseCreator.imageUrl},

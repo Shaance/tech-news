@@ -11,19 +11,23 @@ import 'package:technewsaggregator/toast_message_helper.dart';
 import 'article.dart';
 import 'database_creator.dart';
 
-Future<String> getCategoryQueryParam(String sourceKey) async {
-  final base = '&category=';
+Future<Map<String, String>> getCategoryQueryParam(String sourceKey) async {
   if (sourceKey == SharedPreferencesHelper.kDevToKey) {
-    return base + await SharedPreferencesHelper.getDevToCategory();
+    return {
+      'category' : await SharedPreferencesHelper.getDevToCategory()
+    };
   } else if (sourceKey == SharedPreferencesHelper.kHackernewsKey) {
-    return base + await SharedPreferencesHelper.getHackernewsCategory();
+    return {
+      'category' : await SharedPreferencesHelper.getHackernewsCategory()
+    };
   }
-  return '';
+  return {};
 }
 
-Future<String> getArticleNumberQueryParam() async {
-  final base = '?articleNumber=';
-  return base + await SharedPreferencesHelper.getNumberOfArticles();
+Future<Map<String, String>> getArticleNumberQueryParam() async {
+  return {
+    'articleNumber' : await SharedPreferencesHelper.getNumberOfArticles()
+  };
 }
 
 Future<List<Article>> groupBySource(List<Article> original) async {
@@ -57,14 +61,14 @@ Future<List<Article>> limitBySource(List<Article> original) async {
 }
 
 Future<List<Source>> fetchRssSources(String baseUrl) async {
-  return fetchSources('$baseUrl/api/v2/source/rss');
+  return fetchSources(new Uri.http(baseUrl, '/dev/api/v2/source/rss'));
 }
 
 Future<List<Source>> fetchArchiveSources(String baseUrl) async {
-  return fetchSources('$baseUrl/api/v2/source/archive');
+  return fetchSources(new Uri.http(baseUrl, '/dev/api/v2/source/archive'));
 }
 
-Future<List<Source>> fetchSources(String sourceApiUrl) async {
+Future<List<Source>> fetchSources(Uri sourceApiUrl) async {
   final sourcesResponse = await http.get(sourceApiUrl);
   final oldSources = await RepositoryServiceSource.getAllSources();
   if (sourcesResponse.statusCode == 200) {
@@ -87,7 +91,7 @@ Future<List<Source>> fetchSources(String sourceApiUrl) async {
 }
 
 Future articleApiCall(
-    String url, List<Article> result, Set<String> seen, String sourceTitle) {
+    Uri url, List<Article> result, Set<String> seen, String sourceTitle) {
   return http.get(url).then((response) {
     var jsonArticles = json.decode(response.body) as List;
     jsonArticles.map((jsonArticle) {
@@ -103,8 +107,8 @@ Future articleApiCall(
 }
 
 Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
-  List<Article> result = List<Article>();
-  List<Source> sources = List<Source>();
+  List<Article> result = [];
+  List<Source> sources = [];
   try {
     showBottomToast('Fetching your articles', 3);
     sources = await fetchRssSources(baseUrl);
@@ -117,8 +121,9 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
       final articleNbQueryParam = await getArticleNumberQueryParam();
       for (Source source in sources) {
         final categoryQueryParam = await getCategoryQueryParam(source.key);
+        final queryParams = {...articleNbQueryParam, ...categoryQueryParam};
         futures.add(articleApiCall(
-            '$baseUrl/api/v2/source/rss/${source.key}$articleNbQueryParam$categoryQueryParam',
+            new Uri.http(baseUrl, '/dev/api/v2/source/rss/${source.key}', queryParams),
             result,
             seen,
             source.title));

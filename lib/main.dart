@@ -448,7 +448,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
       overlayColor: Color.fromRGBO(140, 140, 140, 1),
       children: [
         SpeedDialChild(
-            child: Icon(Icons.refresh),
+            child: Icon(Icons.refresh, color: Colors.black),
             labelBackgroundColor: Colors.black54,
             label: 'Refresh article list',
             backgroundColor: customGrey,
@@ -456,7 +456,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
         ),
         SpeedDialChild(
             child: Icon(
-                _hideReadArticles ? Icons.visibility : Icons.visibility_off),
+                _hideReadArticles ? Icons.visibility : Icons.visibility_off,
+                color: Colors.black),
             labelBackgroundColor: Colors.black54,
             label: (_hideReadArticles ? 'Show' : 'Hide') + ' read articles',
             backgroundColor: customGrey,
@@ -467,7 +468,8 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
             }),
         SpeedDialChild(
             child:
-                Icon(_showOnlySavedArticles ? Icons.all_inclusive : Icons.book),
+                Icon(_showOnlySavedArticles ? Icons.all_inclusive : Icons.book,
+                    color: Colors.black),
             labelBackgroundColor: Colors.black54,
             label: _showOnlySavedArticles
                 ? 'Show all articles'
@@ -482,7 +484,7 @@ class TechArticlesWidgetState extends State<TechArticlesWidget> {
               });
             }),
         SpeedDialChild(
-            child: Icon(Icons.settings),
+            child: Icon(Icons.settings, color: Colors.black),
             labelBackgroundColor: Colors.black54,
             label: 'Access application settings',
             backgroundColor: customGrey,

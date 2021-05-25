@@ -11,6 +11,8 @@ import 'package:technewsaggregator/toast_message_helper.dart';
 import 'article.dart';
 import 'database_creator.dart';
 
+final String kSourceApi = '/dev/api/v2/source';
+
 Future<Map<String, String>> getCategoryQueryParam(String sourceKey) async {
   if (sourceKey == SharedPreferencesHelper.kDevToKey) {
     return {
@@ -61,11 +63,24 @@ Future<List<Article>> limitBySource(List<Article> original) async {
 }
 
 Future<List<Source>> fetchRssSources(String baseUrl) async {
-  return fetchSources(new Uri.http(baseUrl, '/dev/api/v2/source/rss'));
+  if (baseUrl.contains('localhost')) {
+    return fetchSources(new Uri.http(baseUrl, '$kSourceApi/rss'));
+  }
+  return fetchSources(new Uri.https(baseUrl, '$kSourceApi/rss'));
 }
 
 Future<List<Source>> fetchArchiveSources(String baseUrl) async {
-  return fetchSources(new Uri.http(baseUrl, '/dev/api/v2/source/archive'));
+  if (baseUrl.contains('localhost')) {
+    return fetchSources(new Uri.http(baseUrl, '$kSourceApi/archive'));
+  }
+  return fetchSources(new Uri.https(baseUrl, '$kSourceApi/archive'));
+}
+
+String stripUrlSlash(String baseUrl) {
+  if (baseUrl.endsWith('/')) {
+    return baseUrl.substring(0, baseUrl.length -1);
+  }
+  return baseUrl;
 }
 
 Future<List<Source>> fetchSources(Uri sourceApiUrl) async {
@@ -109,9 +124,10 @@ Future articleApiCall(
 Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) async {
   List<Article> result = [];
   List<Source> sources = [];
+  final host = stripUrlSlash(baseUrl);
   try {
     showBottomToast('Fetching your articles', 3);
-    sources = await fetchRssSources(baseUrl);
+    sources = await fetchRssSources(host);
     if (sources.length > 0) {
       var futures = <Future>[];
       Set<String> seen = oldArticles != null
@@ -123,7 +139,7 @@ Future<List<Article>> fetchArticles(String baseUrl, List<Article> oldArticles) a
         final categoryQueryParam = await getCategoryQueryParam(source.key);
         final queryParams = {...articleNbQueryParam, ...categoryQueryParam};
         futures.add(articleApiCall(
-            new Uri.http(baseUrl, '/dev/api/v2/source/rss/${source.key}', queryParams),
+            new Uri.http(host, '$kSourceApi/rss/${source.key}', queryParams),
             result,
             seen,
             source.title));
